@@ -13,15 +13,6 @@ A local-first community running tracker. Works on GitHub Pages — no server, no
 - **Segment strategy** — color-coded pace instructions per km segment
 - **Leaderboard** — personal bests, global rankings (shared via localStorage on same device/browser), verified runs (with Strava proof image)
 
-## Deploy to GitHub Pages
-
-1. Fork or clone this repo
-2. Go to **Settings → Pages**
-3. Set source to **main branch / root**
-4. Your app will be live at `https://yourusername.github.io/runtracker`
-
-That's it. No build step, no npm, no config.
-
 ## AI Coach setup
 
 1. Get a free API key at [console.groq.com](https://console.groq.com)
@@ -31,22 +22,7 @@ That's it. No build step, no npm, no config.
 ## Notes
 
 - **All data is stored in your browser's `localStorage`** — it persists across sessions on the same browser/device
-- The global leaderboard works across accounts on the **same device/browser** — it's shared via a common `localStorage` key
-- For a true multi-device global leaderboard you'd need a backend (Supabase, Firebase, etc.)
+- The global leaderboard works by storing the data in github. You have to opt-in for this to happen
+- Using the SQL export, you can login and sync data on multiple devices
 - Verified runs require uploading a Strava screenshot as proof (image is stored as base64 in localStorage)
 - Live GPS tracking requires location permission and works best on mobile
-
-## File structure
-
-```
-index.html          — main app shell
-css/app.css         — all styles
-js/storage.js       — localStorage wrapper with user namespacing
-js/auth.js          — local account system (register/login/logout)
-js/maps.js          — Leaflet map management
-js/runs.js          — run CRUD, pace math, plan engine
-js/coach.js         — Groq AI coach
-js/leaderboard.js   — personal bests + global board + verified runs
-js/live.js          — GPS live tracking
-js/app.js           — bootstrap + page router
-```
