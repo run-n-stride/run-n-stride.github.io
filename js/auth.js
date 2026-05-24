@@ -215,17 +215,32 @@ ${dataRows}
     }
   },
 
-  // ── Sync via GitHub Gist ──
-  saveSyncToken(token) {
-    localStorage.setItem(`rt_${this.current.username}_sync_token`, token);
+  // ── Sync via GitHub repo Contents API ──
+  // Reads config from sync-config.js (SYNC_CONFIG.owner / .repo / .token)
+  // Each user's data lives at: /sync/{username}.json in the repo
+
+  _syncCfg() {
+    if (typeof SYNC_CONFIG === 'undefined' || !SYNC_CONFIG.token || SYNC_CONFIG.token.startsWith('YOUR_')) return null;
+    return SYNC_CONFIG;
   },
-  getSyncToken() {
-    return localStorage.getItem(`rt_${this.current?.username}_sync_token`) || '';
+
+  syncEnabled() {
+    return !!this._syncCfg();
+  },
+
+  _syncPath(username) {
+    const cfg = this._syncCfg();
+    return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/sync/${username}.json`;
+  },
+
+  _syncHeaders() {
+    const cfg = this._syncCfg();
+    return { Authorization: `token ${cfg.token}`, 'Content-Type': 'application/json' };
   },
 
   async pushSync() {
-    const token = this.getSyncToken();
-    if (!token) return { err: 'No GitHub token saved.' };
+    const cfg = this._syncCfg();
+    if (!cfg) return { err: 'Sync not configured — edit sync-config.js in your repo.' };
     const u = this.current.username;
     const accounts = this._accounts();
     const acc = accounts[u];
@@ -233,44 +248,53 @@ ${dataRows}
     const payload = {};
     dataKeys.forEach(k => { payload[k] = DB.get(k, null); });
 
-    const gistId = localStorage.getItem(`rt_${u}_gist_id`);
-    const method = gistId ? 'PATCH' : 'POST';
-    const url = gistId ? `https://api.github.com/gists/${gistId}` : 'https://api.github.com/gists';
+    const content = JSON.stringify({
+      account: { username: acc.username, displayName: acc.displayName, hash: acc.hash, scrambleKey: acc.scrambleKey, createdAt: acc.createdAt },
+      data: payload,
+      syncedAt: new Date().toISOString(),
+    }, null, 2);
 
+    // base64-encode for GitHub API
+    const b64 = btoa(unescape(encodeURIComponent(content)));
+
+    // check if file already exists (need its SHA to update)
+    const existing = await fetch(this._syncPath(u), { headers: this._syncHeaders() });
     const body = {
-      description: `RunTrack sync — ${u}`,
-      public: false,
-      files: {
-        [`runtrack_${u}.json`]: {
-          content: JSON.stringify({ account: { username: acc.username, displayName: acc.displayName, hash: acc.hash, scrambleKey: acc.scrambleKey, createdAt: acc.createdAt }, data: payload }, null, 2)
-        }
-      }
+      message: `RunTrack sync: ${u} @ ${new Date().toISOString()}`,
+      content: b64,
     };
+    if (existing.ok) {
+      const existingJson = await existing.json();
+      body.sha = existingJson.sha;
+    }
 
-    const res = await fetch(url, {
-      method,
-      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const res = await fetch(this._syncPath(u), {
+      method: 'PUT',
+      headers: this._syncHeaders(),
+      body: JSON.stringify(body),
     });
-    if (!res.ok) return { err: `GitHub error ${res.status}` };
-    const json = await res.json();
-    localStorage.setItem(`rt_${u}_gist_id`, json.id);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { err: err.message || `GitHub error ${res.status}` };
+    }
     localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
-    return { ok: true, gistId: json.id };
+    return { ok: true };
   },
 
-  async pullSync(gistId, token) {
-    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: { Authorization: `token ${token}` }
-    });
+  async pullSync() {
+    const cfg = this._syncCfg();
+    if (!cfg) return { err: 'Sync not configured.' };
+    const u = this.current.username;
+    const res = await fetch(this._syncPath(u), { headers: this._syncHeaders() });
+    if (res.status === 404) return { ok: true, empty: true }; // no remote data yet
     if (!res.ok) return { err: `GitHub error ${res.status}` };
     const json = await res.json();
-    const file = Object.values(json.files)[0];
-    if (!file) return { err: 'No data in Gist.' };
-    const raw = await fetch(file.raw_url).then(r => r.json());
-    const { data } = raw;
+    // GitHub returns content as base64
+    const decoded = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
+    const parsed = JSON.parse(decoded);
+    const { data } = parsed;
     Object.entries(data).forEach(([k, v]) => { if (v !== null) DB.set(k, v); });
-    localStorage.setItem(`rt_${this.current.username}_last_sync`, new Date().toISOString());
+    localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
     return { ok: true };
   },
 
@@ -386,34 +410,43 @@ function showSyncPrompt(username) {
   document.getElementById('sync-username-label').textContent = username;
 }
 
-function dismissSyncPrompt() {
-  document.getElementById('sync-prompt').style.display = 'none';
-  bootApp();
-}
-
+// ── sync prompt — just one button, no tokens/IDs needed from user ──
 async function doSyncPull() {
-  const gistId = document.getElementById('sync-gist-id').value.trim();
-  const token = document.getElementById('sync-gh-token').value.trim();
   const errEl = document.getElementById('sync-error');
   errEl.textContent = '';
-  if (!gistId || !token) { errEl.textContent = 'Enter both Gist ID and GitHub token.'; return; }
-  Auth.saveSyncToken(token);
-  localStorage.setItem(`rt_${Auth.current.username}_gist_id`, gistId);
-  const r = await Auth.pullSync(gistId, token);
+  if (!Auth.syncEnabled()) {
+    errEl.textContent = 'Sync not configured — edit sync-config.js in the repo first.';
+    return;
+  }
+  const btn = document.getElementById('btn-sync-pull');
+  btn.disabled = true; btn.textContent = 'Syncing…';
+  const r = await Auth.pullSync();
+  btn.disabled = false; btn.textContent = 'Pull my data';
   if (r.err) { errEl.textContent = r.err; return; }
   document.getElementById('sync-prompt').style.display = 'none';
   bootApp();
 }
 
-// ── background sync check on page load ──
+function dismissSyncPrompt() {
+  document.getElementById('sync-prompt').style.display = 'none';
+  bootApp();
+}
+
+// ── background sync on page open ──
 async function checkBackgroundSync() {
-  const u = Auth.current?.username;
-  if (!u) return;
-  const token = Auth.getSyncToken();
-  const gistId = localStorage.getItem(`rt_${u}_gist_id`);
-  if (!token || !gistId) return;
+  if (!Auth.current || !Auth.syncEnabled()) return;
+  const u = Auth.current.username;
   const lastSync = localStorage.getItem(`rt_${u}_last_sync`);
-  // only auto-pull if last sync was > 10 minutes ago
   if (lastSync && (Date.now() - new Date(lastSync).getTime()) < 10 * 60 * 1000) return;
-  try { await Auth.pullSync(gistId, token); } catch {}
+  try { await Auth.pullSync(); } catch {}
+}
+
+// ── auto-push 5s after a run is saved ──
+let _syncPushTimer = null;
+function scheduleSyncPush() {
+  if (!Auth.syncEnabled()) return;
+  clearTimeout(_syncPushTimer);
+  _syncPushTimer = setTimeout(async () => {
+    try { await Auth.pushSync(); } catch {}
+  }, 5000);
 }
