@@ -7,14 +7,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="css/app.css">
-<style>
-/* modals */
-.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px; }
-.modal-box { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:380px; }
-.modal-box h3 { margin:0 0 8px;font-size:16px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-#sync-spinner { display:inline-block; font-size:28px; }
-</style>
 </head>
 <body>
 
@@ -213,7 +205,7 @@
         </div>
         <div id="map-live" class="map-div" style="height:320px;margin-bottom:12px"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" id="btn-start-live" onclick="openPickRoute()">Start Run</button>
+          <button class="btn btn-primary" id="btn-start-live" onclick="startLiveRun()">Start Run</button>
           <button class="btn btn-ghost" id="btn-stop-live" onclick="stopLiveRun()" style="display:none">Finish & Save</button>
           <button class="btn btn-danger-ghost" id="btn-discard-live" onclick="discardLiveRun()" style="display:none">Discard</button>
         </div>
@@ -341,18 +333,6 @@
         <span id="key-saved-msg" style="display:none;font-size:12px;color:var(--green);margin-left:10px">Saved!</span>
       </div>
 
-
-      <div class="section">
-        <h3>Leaderboard sharing</h3>
-        <div class="toggle-row">
-          <div>
-            <span style="font-size:13px;font-weight:600">Share my runs globally</span>
-            <p class="field-note" style="margin-top:3px">Your username and run stats appear in the Global leaderboard for all users. Note: on GitHub Pages, data is stored in shared localStorage — once shared it cannot be removed from others' browsers.</p>
-          </div>
-          <div class="toggle" id="settings-lb-toggle" onclick="toggleLBSharing()"></div>
-        </div>
-      </div>
-
       <div class="section">
         <h3>Profile</h3>
         <div class="grid-2">
@@ -392,21 +372,23 @@
 
       <!-- MULTI-DEVICE SYNC -->
       <div class="section">
-        <h3>Multi-device sync</h3>
+        <h3>Multi-device sync <span style="font-size:11px;color:var(--muted2);font-weight:400">via this repo</span></h3>
         <div id="sync-not-configured" style="display:none">
-          <div class="warn-box">
-            Sync not active — set <code>SYNC_WORKER_URL</code> in <code>sync-config.js</code> and redeploy.
+          <div class="warn-box" style="margin-bottom:12px">
+            Sync is not configured. Edit <code>sync-config.js</code> in your repo with your GitHub username, repo name, and a fine-grained PAT (Contents: read &amp; write on this repo only).
+            <br><a href="https://github.com/settings/tokens?type=beta" target="_blank" style="font-size:11px">Create token →</a>
           </div>
         </div>
         <div id="sync-configured" style="display:none">
-          <div class="toggle-row">
-            <div>
-              <span style="font-size:13px;font-weight:600">Sync across devices</span>
-              <p class="field-note" style="margin-top:3px">Automatically syncs after every run and when you open the app. No manual action needed.</p>
-              <p id="settings-last-sync" style="font-size:11px;color:var(--muted);margin-top:4px">Never synced</p>
-            </div>
-            <div class="toggle on" id="settings-sync-toggle"></div>
+          <p class="field-note" style="margin-bottom:12px">
+            Your runs sync to <code id="sync-repo-label"></code> automatically whenever you save a run (5s delay) and when you open the app (if &gt;10 min since last sync).
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="doSyncPushSettings()">Push now ↑</button>
+            <button class="btn btn-ghost btn-sm" onclick="doSyncPullSettings()">Pull now ↓</button>
           </div>
+          <div id="sync-settings-msg" style="font-size:12px;color:var(--muted2);margin-top:8px"></div>
+          <p id="settings-last-sync" style="font-size:11px;color:var(--muted);margin-top:6px">Never synced</p>
         </div>
       </div>
 
@@ -430,7 +412,6 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="sync-config.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/maps.js"></script>
