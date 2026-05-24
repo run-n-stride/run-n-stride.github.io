@@ -80,24 +80,18 @@
     <h3 style="margin-bottom:8px;font-size:16px">New device detected</h3>
     <p style="font-size:13px;color:var(--muted2);margin-bottom:16px">
       Welcome back, <strong id="sync-username-label"></strong>! This looks like a new browser or device.
-      Would you like to sync your run data from another device via a private GitHub Gist?
+      Want to pull your run data from the repo?
     </p>
-    <div class="form-group">
-      <label>GitHub personal access token <span style="color:var(--muted2);font-weight:400">(needs Gist scope)</span></label>
-      <input type="password" id="sync-gh-token" placeholder="ghp_...">
-      <p class="field-note">Create at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> — select only the <em>gist</em> scope. Stored locally only.</p>
+    <div id="sync-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:12px"></div>
+    <div id="sync-not-enabled-msg" style="display:none;margin-bottom:12px">
+      <div class="warn-box">Sync isn't set up yet — edit <code>sync-config.js</code> in your repo to enable it.</div>
     </div>
-    <div class="form-group">
-      <label>Gist ID <span style="color:var(--muted2);font-weight:400">(from your previous device's Settings → Sync)</span></label>
-      <input type="text" id="sync-gist-id" placeholder="e.g. a1b2c3d4e5f6...">
-    </div>
-    <div id="sync-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="doSyncPull()">Sync from Gist</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="btn-sync-pull" onclick="doSyncPull()">Pull my data</button>
       <button class="btn btn-ghost" onclick="dismissSyncPrompt()">Skip — start fresh</button>
     </div>
     <p class="auth-note" style="margin-top:14px">
-      Alternatively, import a <strong>.sql backup</strong> instead — go back and use the SQL import on the login screen.
+      Or use the <strong>.sql backup import</strong> on the login screen instead.
     </p>
   </div>
 </div>
@@ -378,27 +372,24 @@
 
       <!-- MULTI-DEVICE SYNC -->
       <div class="section">
-        <h3>Multi-device sync <span style="font-size:11px;color:var(--muted2);font-weight:400">via private GitHub Gist</span></h3>
-        <p class="field-note" style="margin-bottom:12px">
-          Sync your runs across devices using a private GitHub Gist — no account or server needed beyond GitHub.
-          Your run data is pushed to a secret (unlisted) Gist. On a new device, enter the Gist ID and token to pull it down.
-          Auto-sync runs in the background when you open the app (if a Gist is configured).
-        </p>
-        <div class="form-group">
-          <label>GitHub personal access token <span style="color:var(--muted2);font-weight:400">(Gist scope only)</span></label>
-          <input type="password" id="settings-sync-token" placeholder="ghp_...">
-          <p class="field-note">Create at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a> — enable only the <em>gist</em> scope.</p>
+        <h3>Multi-device sync <span style="font-size:11px;color:var(--muted2);font-weight:400">via this repo</span></h3>
+        <div id="sync-not-configured" style="display:none">
+          <div class="warn-box" style="margin-bottom:12px">
+            Sync is not configured. Edit <code>sync-config.js</code> in your repo with your GitHub username, repo name, and a fine-grained PAT (Contents: read &amp; write on this repo only).
+            <br><a href="https://github.com/settings/tokens?type=beta" target="_blank" style="font-size:11px">Create token →</a>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Gist ID <span style="color:var(--muted2);font-weight:400">(auto-filled after first push)</span></label>
-          <input type="text" id="settings-gist-id" placeholder="Will appear after first push">
+        <div id="sync-configured" style="display:none">
+          <p class="field-note" style="margin-bottom:12px">
+            Your runs sync to <code id="sync-repo-label"></code> automatically whenever you save a run (5s delay) and when you open the app (if &gt;10 min since last sync).
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="doSyncPushSettings()">Push now ↑</button>
+            <button class="btn btn-ghost btn-sm" onclick="doSyncPullSettings()">Pull now ↓</button>
+          </div>
+          <div id="sync-settings-msg" style="font-size:12px;color:var(--muted2);margin-top:8px"></div>
+          <p id="settings-last-sync" style="font-size:11px;color:var(--muted);margin-top:6px">Never synced</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn btn-primary btn-sm" onclick="doSyncPush()">Push to Gist ↑</button>
-          <button class="btn btn-ghost btn-sm" onclick="doSyncPullSettings()">Pull from Gist ↓</button>
-        </div>
-        <div id="sync-settings-msg" style="font-size:12px;color:var(--muted2);margin-top:8px"></div>
-        <p id="settings-last-sync" style="font-size:11px;color:var(--muted);margin-top:6px">Never synced</p>
       </div>
 
       <!-- DATA -->
