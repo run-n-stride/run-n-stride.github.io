@@ -506,12 +506,17 @@ function handleImageUpload(e) {
     const dataUrl = ev.target.result;
     Runs._uploadedImage = dataUrl;
     const previewEl = document.getElementById('upload-preview');
-    previewEl.innerHTML = `<img src="${dataUrl}" alt="Strava screenshot" style="max-width:100%;border-radius:6px;margin-top:8px"><div id="ocr-status" style="font-size:11px;color:var(--muted2);margin-top:6px">Reading screenshot…</div>`;
+    previewEl.innerHTML = `
+      <img src="${dataUrl}" alt="Strava screenshot" style="max-width:100%;border-radius:6px;margin-top:8px">
+      <div id="ocr-status" style="font-size:12px;color:var(--muted2);margin-top:8px;display:flex;align-items:center;gap:8px">
+        <span id="ocr-spinner" style="animation:spin 1s linear infinite;display:inline-block">⟳</span>
+        Reading screenshot…
+      </div>`;
     document.getElementById('upload-zone').style.borderColor = 'var(--green)';
 
-    // extract base64 data (strip data URL prefix)
-    const b64 = dataUrl.split(',')[1];
+    const b64      = dataUrl.split(',')[1];
     const mimeType = dataUrl.split(';')[0].split(':')[1];
+    const statusEl = () => document.getElementById('ocr-status');
 
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -519,33 +524,68 @@ function handleImageUpload(e) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 300,
+          max_tokens: 400,
           messages: [{
             role: 'user',
             content: [
               { type: 'image', source: { type: 'base64', media_type: mimeType, data: b64 } },
-              { type: 'text', text: 'This is a Strava activity screenshot. Extract the run data and respond ONLY with valid JSON, no markdown, no extra text. Fields: distance_km (number), time_str (string, e.g. "25:30"), elevation_m (number or null), name (string or null). If you cannot find a field, use null.' }
+              { type: 'text', text: 'Look at this image. First decide: is this a Strava activity screenshot showing a run/workout? Respond ONLY with valid JSON, no markdown. Fields: is_strava (boolean), distance_km (number or null), time_str (mm:ss or h:mm:ss string or null), elevation_m (number or null), name (string or null), date (YYYY-MM-DD or null). If not a Strava screenshot set is_strava to false and all other fields to null.' }
             ]
           }]
         })
       });
-      if (res.ok) {
-        const data = await res.json();
-        const raw = data.content?.find(b => b.type === 'text')?.text || '';
-        const cleaned = raw.replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(cleaned);
-        // auto-fill form fields if found
-        if (parsed.distance_km) document.getElementById('log-dist').value = parsed.distance_km.toFixed(2);
-        if (parsed.time_str) document.getElementById('log-time').value = parsed.time_str;
-        if (parsed.elevation_m) document.getElementById('log-elev').value = parsed.elevation_m;
-        if (parsed.name) document.getElementById('log-name').value = parsed.name;
-        document.getElementById('ocr-status').innerHTML = '<span style="color:var(--green)">✓ Data extracted from screenshot — check fields above</span>';
-        Runs.updatePacePreview();
-      } else {
-        document.getElementById('ocr-status').innerHTML = '<span style="color:var(--muted2)">✓ Image attached (could not auto-read — fill fields manually)</span>';
+
+      if (!res.ok) throw new Error('API ' + res.status);
+
+      const data    = await res.json();
+      const raw     = data.content?.find(b => b.type === 'text')?.text || '';
+      const cleaned = raw.replace(/```json|```/g, '').trim();
+      const parsed  = JSON.parse(cleaned);
+
+      if (!parsed.is_strava) {
+        // not a strava screenshot — clear and warn
+        Runs._uploadedImage = null;
+        document.getElementById('upload-zone').style.borderColor = '';
+        previewEl.innerHTML = `<div style="color:var(--red);font-size:12px;margin-top:8px">✗ Doesn't look like a Strava screenshot — please upload a Strava activity screenshot.</div>`;
+        return;
       }
-    } catch {
-      document.getElementById('ocr-status').innerHTML = '<span style="color:var(--muted2)">✓ Image attached (fill fields manually)</span>';
+
+      // it's strava — save run immediately, no form needed
+      const today = new Date().toISOString().split('T')[0];
+      const run = {
+        id: Date.now(),
+        userId: Auth.current.username,
+        displayName: Auth.current.displayName,
+        date: parsed.date || today,
+        name: parsed.name || `Strava run ${parsed.date || today}`,
+        dist: parsed.distance_km || 0,
+        timeSec: Runs.parseTime(parsed.time_str || '0'),
+        elev: parsed.elevation_m || 0,
+        pace: Runs.calcPace(parsed.distance_km || 0, Runs.parseTime(parsed.time_str || '0')),
+        notes: 'Imported from Strava screenshot',
+        tags: ['Strava'],
+        route: [],
+        stravaImg: dataUrl,
+        verified: true,
+      };
+
+      statusEl().innerHTML = '<span style="color:var(--green)">✓ Strava run detected — saving…</span>';
+      Runs.add(run);
+      scheduleSyncPush();
+
+      // reset upload zone
+      Runs._uploadedImage = null;
+      document.getElementById('upload-zone').style.borderColor = '';
+
+      // show success then go to history
+      statusEl().innerHTML = `<span style="color:var(--green)">✓ Saved: <b>${run.name}</b> — ${run.dist.toFixed(2)}km ${Runs.fmtPace(run.pace)}</span>`;
+      setTimeout(() => {
+        previewEl.innerHTML = '';
+        showPage('history');
+      }, 1800);
+
+    } catch (err) {
+      statusEl().innerHTML = `<span style="color:var(--muted2)">Could not read screenshot automatically — fill in the form manually.</span>`;
     }
   };
   reader.readAsDataURL(file);
