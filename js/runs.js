@@ -113,6 +113,7 @@ const Runs = {
       verified: !!this._uploadedImage,
     };
     this.add(run);
+    scheduleSyncPush();
 
     // reset
     ['log-name','log-dist','log-time','log-elev','log-notes'].forEach(id => document.getElementById(id).value = '');
