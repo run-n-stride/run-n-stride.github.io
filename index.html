@@ -3,1074 +3,452 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INTRA — Events</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#07080d;--bg2:#0d0f1a;--panel:#111422;--panel2:#161928;
-  --border:#1e2240;--border2:#2a3060;
-  --gold:#f0c040;--gold2:#ffd97d;--cyan:#00e5ff;--purple:#a855f7;
-  --red:#ff4466;--green:#22d984;
-  --text:#e8eaf6;--text2:#8892c0;--text3:#404870;
-  --glow-gold:0 0 24px rgba(240,192,64,.35);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;overflow-x:hidden}
-
-/* subtle grid bg */
-body::before{content:'';position:fixed;inset:0;z-index:0;
-  background-image:linear-gradient(rgba(30,34,64,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(30,34,64,.4) 1px,transparent 1px);
-  background-size:40px 40px;pointer-events:none}
-body::after{content:'';position:fixed;inset:0;z-index:0;
-  background:radial-gradient(ellipse at 20% 0%,rgba(168,85,247,.07) 0%,transparent 55%),
-             radial-gradient(ellipse at 80% 100%,rgba(0,229,255,.05) 0%,transparent 55%);
-  pointer-events:none}
-
-#app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
-
-/* ── LOGIN WALL ── */
-#login-wall{
-  position:fixed;inset:0;z-index:500;
-  background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
-}
-#login-wall.hidden{display:none}
-.login-box{
-  width:100%;max-width:400px;padding:2rem;
-  background:var(--panel);border:1px solid var(--border2);border-radius:20px;
-  box-shadow:0 0 60px rgba(0,0,0,.6),0 0 0 1px rgba(240,192,64,.08);
-  text-align:center;
-}
-.login-logo{
-  font-family:'Cinzel Decorative',serif;font-size:2rem;font-weight:900;
-  background:linear-gradient(135deg,var(--gold),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 16px rgba(240,192,64,.3));
-  margin-bottom:.25rem;
-}
-.login-sub{color:var(--text3);font-size:.75rem;letter-spacing:.3em;text-transform:uppercase;margin-bottom:2rem}
-.login-box label{display:block;text-align:left;color:var(--text2);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
-.login-box input{
-  width:100%;background:var(--bg2);border:1px solid var(--border2);
-  color:var(--text);border-radius:10px;padding:.65rem 1rem;
-  font-family:'Exo 2',sans-serif;font-size:.95rem;letter-spacing:.08em;
-  margin-bottom:1rem;transition:border-color .2s,box-shadow .2s;
-}
-.login-box input:focus{outline:none;border-color:var(--gold);box-shadow:var(--glow-gold)}
-.login-box input::placeholder{color:var(--text3)}
-#login-error{color:var(--red);font-size:.8rem;margin-bottom:.75rem;min-height:1em}
-
-/* ── HEADER ── */
-header{
-  padding:.9rem 2rem;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;gap:1rem;
-  background:rgba(7,8,13,.85);backdrop-filter:blur(16px);
-  position:sticky;top:0;z-index:100;
-}
-.header-left{display:flex;align-items:center;gap:1.25rem}
-
-/* Logo slot — put your <img> here or leave as text */
-.logo-img{height:36px;width:auto;object-fit:contain}
-.logo-text{
-  font-family:'Cinzel Decorative',serif;font-size:1.3rem;font-weight:900;
-  background:linear-gradient(135deg,var(--gold),var(--cyan));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.logo-divider{width:1px;height:28px;background:var(--border2)}
-
-#auth-bar{display:flex;align-items:center;gap:.7rem}
-.user-pill{
-  display:flex;align-items:center;gap:.6rem;
-  background:var(--panel);border:1px solid var(--border2);border-radius:8px;padding:.3rem .75rem .3rem .4rem;
-}
-.user-avatar{
-  width:26px;height:26px;border-radius:50%;
-  background:linear-gradient(135deg,var(--purple),var(--cyan));
-  display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;
-}
-.user-name{font-size:.83rem;color:var(--text2);font-weight:600}
-.ticket-count{color:var(--gold);font-weight:700;font-size:.83rem;letter-spacing:.03em}
-
-/* ── REDEEM BAR ── */
-.redeem-bar{
-  display:flex;align-items:center;gap:.65rem;
-  padding:.65rem 2rem;border-bottom:1px solid var(--border);
-  background:rgba(240,192,64,.02);
-}
-.redeem-bar input{
-  width:220px;background:var(--panel);border:1px solid var(--border2);
-  color:var(--text);border-radius:8px;padding:.42rem .85rem;
-  font-family:'Exo 2',sans-serif;font-size:.83rem;
-  text-transform:uppercase;letter-spacing:.12em;transition:border-color .2s;
-}
-.redeem-bar input:focus{outline:none;border-color:var(--gold)}
-.redeem-bar input::placeholder{color:var(--text3);letter-spacing:.1em}
-#redeem-msg{font-size:.78rem;font-weight:600}
-
-/* ── TABS ── */
-nav.tabs{
-  display:flex;overflow-x:auto;border-bottom:1px solid var(--border);
-  background:var(--bg2);padding:0 2rem;scrollbar-width:none;flex-shrink:0;
-}
-nav.tabs::-webkit-scrollbar{display:none}
-.tab-btn{
-  padding:.75rem 1.2rem;background:none;border:none;cursor:pointer;
-  font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:600;
-  color:var(--text3);border-bottom:2px solid transparent;transition:all .18s;white-space:nowrap;
-}
-.tab-btn:hover{color:var(--text2)}
-.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
-.tab-btn .edate{font-size:.64rem;display:block;font-weight:300;margin-top:.1rem;color:var(--text3)}
-.tab-btn.active .edate{color:var(--gold2)}
-
-/* ── MAIN ── */
-main{flex:1;padding:2rem;max-width:1100px;margin:0 auto;width:100%}
-
-/* ── COMPONENTS ── */
-.btn{
-  display:inline-flex;align-items:center;gap:.4rem;
-  padding:.45rem 1rem;border-radius:8px;border:none;cursor:pointer;
-  font-family:'Exo 2',sans-serif;font-size:.82rem;font-weight:600;
-  transition:all .18s;text-decoration:none;white-space:nowrap;
-}
-.btn-gold{background:var(--gold);color:#1a1200}
-.btn-gold:hover{background:var(--gold2);box-shadow:var(--glow-gold)}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
-.btn-ghost:hover{color:var(--text);border-color:var(--cyan)}
-.btn-red{background:var(--red);color:#fff}.btn-red:hover{filter:brightness(1.1)}
-.btn-sm{padding:.3rem .7rem;font-size:.76rem}
-
-.card{
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:14px;padding:1.35rem;margin-bottom:1.25rem;
-}
-.card-title{
-  font-family:'Cinzel Decorative',serif;font-size:.85rem;
-  color:var(--gold);margin-bottom:.9rem;letter-spacing:.05em;
-}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-@media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
-
-.event-header{padding:1.75rem 0 1.25rem;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
-.event-title{
-  font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,3.5vw,2rem);
-  background:linear-gradient(135deg,var(--gold),var(--gold2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:.3rem;
-}
-.event-date-lbl{color:var(--text3);font-size:.8rem;letter-spacing:.12em}
-
-/* countdown */
-.cd-wrap{text-align:center;padding:3rem 1rem}
-.cd-label{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--text2);margin-bottom:1.25rem}
-.cd-timer{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}
-.cd-unit{background:var(--panel);border:1px solid var(--border2);border-radius:10px;padding:1rem 1.5rem;min-width:72px}
-.cd-unit .n{font-family:'Cinzel Decorative',serif;font-size:2rem;color:var(--gold);display:block;line-height:1;text-shadow:var(--glow-gold)}
-.cd-unit .l{font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;display:block;margin-top:.2rem}
-
-/* tables */
-.rtable{width:100%;border-collapse:collapse}
-.rtable th{text-align:left;color:var(--text3);font-size:.72rem;letter-spacing:.1em;padding:.4rem .65rem;border-bottom:1px solid var(--border)}
-.rtable td{padding:.5rem .65rem;border-bottom:1px solid var(--border);font-size:.85rem}
-.rtable tr:last-child td{border-bottom:none}
-.gold{color:var(--gold);font-weight:700}
-
-/* choices */
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
-.choice{
-  background:var(--panel2);border:1px solid var(--border2);color:var(--text);
-  border-radius:8px;padding:.5rem .85rem;cursor:pointer;
-  font-family:'Exo 2',sans-serif;font-size:.82rem;text-align:left;transition:all .15s;
-}
-.choice:hover{border-color:var(--cyan)}
-.choice.sel{border-color:var(--gold);color:var(--gold);background:rgba(240,192,64,.07)}
-
-/* q card */
-.qcard{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:1.1rem;margin-bottom:.8rem}
-.qcard .qt{font-weight:600;margin-bottom:.65rem;line-height:1.5;font-size:.9rem}
-.hard-tag{font-size:.64rem;background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3);border-radius:4px;padding:.1rem .35rem;margin-left:.4rem;vertical-align:middle}
-
-/* boss */
-.boss-wrap{background:linear-gradient(135deg,#100808,#1a0505);border:1px solid #3a1010;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem}
-.boss-name{font-family:'Cinzel Decorative',serif;font-size:1.5rem;color:var(--red);text-align:center;margin-bottom:.7rem;text-shadow:0 0 30px rgba(255,68,102,.3)}
-.hp-track{width:100%;height:22px;background:#1a0505;border-radius:6px;overflow:hidden;border:1px solid #3a1010}
-.hp-fill{height:100%;background:linear-gradient(90deg,#7f0000,#ff4466);border-radius:6px;transition:width .5s;box-shadow:0 0 14px rgba(255,68,102,.5)}
-.hp-txt{text-align:center;margin-top:.4rem;color:var(--red);font-size:.82rem}
-
-.class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin:.75rem 0}
-.class-btn{background:var(--panel2);border:2px solid var(--border);border-radius:10px;padding:1rem;cursor:pointer;font-family:'Exo 2',sans-serif;transition:all .18s;text-align:center}
-.class-btn:hover{border-color:var(--cyan)}.class-btn.sel{border-color:var(--gold);box-shadow:var(--glow-gold)}
-.class-icon{font-size:2rem;display:block;margin-bottom:.35rem}
-.class-name{font-size:.88rem;font-weight:700}.class-desc{font-size:.7rem;color:var(--text2);margin-top:.15rem}
-
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
-.stat-b{background:var(--bg2);border-radius:8px;padding:.65rem}
-.stat-b .sl{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.2rem}
-.stat-b .st{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.stat-b .sf{height:100%;border-radius:3px;transition:width .3s}
-.hp-c .sf{background:var(--green)}.mana-c .sf{background:var(--cyan)}.stam-c .sf{background:var(--gold)}
-.stat-b .sv{font-size:.72rem;color:var(--text2);margin-top:.2rem}
-
-.act-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;margin-top:.9rem}
-.blog{background:var(--bg2);border:1px solid var(--border);border-radius:8px;height:160px;overflow-y:auto;padding:.8rem;font-size:.76rem;color:var(--text2);line-height:1.7}
-.blog div{border-bottom:1px solid rgba(255,255,255,.03);padding:.05rem 0}
-
-/* guess */
-.ginput{width:100%;background:var(--panel);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:.48rem .85rem;font-family:'Exo 2',sans-serif;font-size:.85rem;transition:border-color .2s}
-.ginput:focus{outline:none;border-color:var(--cyan)}
-
-/* casino */
-.cgame{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:1.25rem;text-align:center}
-.cgame h3{font-family:'Cinzel Decorative',serif;font-size:.88rem;color:var(--gold);margin-bottom:.75rem}
-.cresult{font-size:1rem;font-weight:700;min-height:1.6em;display:flex;align-items:center;justify-content:center;margin:.55rem 0}
-.binput{width:80px;background:var(--panel2);border:1px solid var(--border2);color:var(--text);border-radius:7px;padding:.35rem .6rem;font-family:'Exo 2',sans-serif;font-size:.9rem;text-align:center;margin:.4rem}
-.reels{display:flex;gap:.4rem;justify-content:center;margin:.75rem 0}
-.reel{width:52px;height:52px;background:var(--bg2);border:2px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;transition:all .3s}
-.reel.spin{animation:spin .4s ease}
-@keyframes spin{0%{transform:rotateX(0)}50%{transform:rotateX(180deg)}100%{transform:rotateX(360deg)}}
-.coin{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#b8860b);margin:.8rem auto;font-size:1.6rem;display:flex;align-items:center;justify-content:center;box-shadow:var(--glow-gold)}
-.coin.flip{animation:cflip .8s ease}
-@keyframes cflip{0%{transform:rotateY(0)}50%{transform:rotateY(900deg)}100%{transform:rotateY(1080deg)}}
-.chambers{display:flex;justify-content:center;gap:.35rem;margin:.75rem 0;flex-wrap:wrap}
-.chamber{width:36px;height:36px;border-radius:50%;border:2px solid var(--border2);background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .3s}
-.chamber.danger{background:var(--red);border-color:var(--red);box-shadow:0 0 10px rgba(255,68,102,.5)}
-.chamber.safe{background:var(--green);border-color:var(--green)}
-
-/* leaderboard */
-.lb-row{display:flex;align-items:center;gap:.9rem;padding:.6rem .9rem;border-bottom:1px solid var(--border)}
-.lb-row:hover{background:rgba(255,255,255,.015)}
-.lb-rank{width:28px;font-family:'Cinzel Decorative',serif;font-size:.88rem;color:var(--text3);text-align:center}
-.lb-rank.r1{color:var(--gold)}.lb-rank.r2{color:#b0b8c0}.lb-rank.r3{color:#cd7f32}
-.lb-name{flex:1;font-size:.88rem;font-weight:600}.lb-val{color:var(--gold);font-weight:700;font-size:.88rem}
-
-/* misc */
-.ok{color:var(--green)}.err{color:var(--red)}
-.tag{display:inline-block;font-size:.68rem;font-weight:600;border-radius:4px;padding:.15rem .4rem}
-.tag-cyan{background:rgba(0,229,255,.08);color:var(--cyan);border:1px solid rgba(0,229,255,.25)}
-.tag-gold{background:rgba(240,192,64,.08);color:var(--gold);border:1px solid rgba(240,192,64,.25)}
-.tag-purple{background:rgba(168,85,247,.08);color:var(--purple);border:1px solid rgba(168,85,247,.25)}
-.divider{border:none;border-top:1px solid var(--border);margin:1.1rem 0}
-.loading{color:var(--text3);text-align:center;padding:2rem;font-style:italic;font-size:.85rem}
-
-.notif{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--panel);border:1px solid var(--border2);border-radius:10px;padding:.8rem 1.2rem;font-size:.83rem;font-weight:600;max-width:260px;display:none;animation:sin .3s ease}
-.notif.show{display:block}.notif.ok{border-color:var(--green);color:var(--green)}.notif.err{border-color:var(--red);color:var(--red)}
-@keyframes sin{from{transform:translateX(110%)}to{transform:translateX(0)}}
-
-.sav{position:fixed;top:.75rem;right:.75rem;z-index:200;background:var(--panel);border:1px solid var(--border2);border-radius:7px;padding:.3rem .8rem;font-size:.72rem;color:var(--text3);display:none}
-.sav.show{display:block}
-
-@media(max-width:480px){
-  header{padding:.75rem 1rem}
-  .redeem-bar{padding:.55rem 1rem}
-  nav.tabs{padding:0 1rem}
-  main{padding:1.25rem}
-}
-</style>
+<title>RunTrack — Community Running Tracker</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
-<!-- ── LOGIN WALL ── -->
-<div id="login-wall">
-  <div class="login-box">
-    <!-- LOGO: replace the text below with <img class="login-logo-img" src="your-logo.png"> if you have one -->
-    <div class="login-logo">INTRA</div>
-    <div class="login-sub">Events Portal</div>
-    <label for="key-input">Your Access Key</label>
-    <input id="key-input" type="text" placeholder="INTRA-XXXX-XXXX" maxlength="14" autocomplete="off" spellcheck="false">
-    <div id="login-error"></div>
-    <button class="btn btn-gold" style="width:100%;justify-content:center;padding:.65rem" onclick="doLogin()">Enter Portal →</button>
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-box">
+    <div class="logo">RUN<span>TRACK</span></div>
+    <p class="auth-sub">Community running. Local-first.</p>
+    <div id="auth-tabs" class="auth-tabs">
+      <button class="atab active" onclick="switchAuth('login')">Sign In</button>
+      <button class="atab" onclick="switchAuth('register')">Create Account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-login">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="yourname" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary w100" onclick="doLogin()">Sign In</button>
+
+      <!-- SQL import toggle -->
+      <div style="margin-top:14px;text-align:center">
+        <button class="link-btn" onclick="toggleSQLImport()" style="font-size:12px;color:var(--muted2)">
+          Signing in on a new device? Import your .sql backup →
+        </button>
+      </div>
+      <div id="sql-import-zone" style="display:none;margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius)">
+        <p style="font-size:12px;color:var(--muted2);margin-bottom:10px">
+          Select your exported <code>.sql</code> file and enter your password to restore your account on this device.
+          Your password is verified against the scrambled SHA-256 hash inside the file — no server needed.
+        </p>
+        <div class="form-group">
+          <label>Your .sql backup file</label>
+          <input type="file" accept=".sql,.txt" onchange="handleSQLFile(event)" style="font-size:12px;color:var(--muted2)">
+          <span id="sql-file-name" style="font-size:11px;color:var(--accent);display:block;margin-top:4px"></span>
+        </div>
+        <p class="field-note" style="margin-bottom:8px">Password field above is used to verify and decrypt the file.</p>
+        <button class="btn btn-primary btn-sm w100" onclick="doSQLImport()">Restore from SQL backup</button>
+      </div>
+
+      <p class="auth-note">Your data stays on your device. No server.</p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-register" style="display:none">
+      <div class="form-group"><label>Username</label><input type="text" id="reg-user" placeholder="yourname" autocomplete="username"></div>
+      <div class="form-group"><label>Display name</label><input type="text" id="reg-display" placeholder="Your Name"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="reg-pass" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="form-group">
+        <label>Groq API key (optional — for AI Coach)</label>
+        <input type="text" id="reg-groq" placeholder="gsk_...">
+        <p class="field-note">Free at <a href="https://console.groq.com" target="_blank">console.groq.com</a> — stored only on your device.</p>
+      </div>
+      <button class="btn btn-primary w100" onclick="doRegister()">Create Account</button>
+      <p class="auth-note" style="margin-top:8px">Passwords are hashed with SHA-256 and scrambled with a per-account key. Export a .sql backup from Settings to move your account to another device.</p>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
   </div>
 </div>
 
-<div id="app">
-  <header>
-    <div class="header-left">
-      <!-- LOGO SLOT: swap text for <img class="logo-img" src="logo.png" alt="INTRA"> -->
-      <div class="logo-text">INTRA</div>
-      <div class="logo-divider"></div>
+<!-- SYNC PROMPT (shown when new device detected after login) -->
+<div id="sync-prompt" class="auth-screen" style="display:none">
+  <div class="auth-box">
+    <div class="logo">RUN<span>TRACK</span></div>
+    <h3 style="margin-bottom:8px;font-size:16px">New device detected</h3>
+    <p style="font-size:13px;color:var(--muted2);margin-bottom:16px">
+      Welcome back, <strong id="sync-username-label"></strong>! This looks like a new browser or device.
+      Want to pull your run data from the repo?
+    </p>
+    <div id="sync-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:12px"></div>
+    <div id="sync-not-enabled-msg" style="display:none;margin-bottom:12px">
+      <div class="warn-box">Sync isn't set up yet — edit <code>sync-config.js</code> in your repo to enable it.</div>
     </div>
-    <div id="auth-bar"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="btn-sync-pull" onclick="doSyncPull()">Pull my data</button>
+      <button class="btn btn-ghost" onclick="dismissSyncPrompt()">Skip — start fresh</button>
+    </div>
+    <p class="auth-note" style="margin-top:14px">
+      Or use the <strong>.sql backup import</strong> on the login screen instead.
+    </p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <header class="app-header">
+    <div class="header-logo">RUN<span>TRACK</span></div>
+    <nav class="main-nav" id="main-nav">
+      <button class="tab active" data-page="dashboard">Dashboard</button>
+      <button class="tab" data-page="log">Log Run</button>
+      <button class="tab" data-page="live">Live Track</button>
+      <button class="tab" data-page="history">History</button>
+      <button class="tab" data-page="plan">Plan</button>
+      <button class="tab" data-page="coach">AI Coach</button>
+      <button class="tab" data-page="leaderboard">Leaderboard</button>
+      <button class="tab" data-page="settings">Settings</button>
+    </nav>
+    <div class="header-user">
+      <span id="header-username"></span>
+      <button class="btn btn-ghost btn-xs" onclick="doLogout()">Out</button>
+    </div>
   </header>
 
-  <div class="redeem-bar">
-    <input type="text" id="code-input" placeholder="REDEEM CODE" maxlength="16">
-    <button class="btn btn-gold btn-sm" onclick="handleRedeem()">Redeem 🎫</button>
-    <span id="redeem-msg"></span>
-  </div>
+  <main class="app-main">
 
-  <nav class="tabs" id="tabs-nav"></nav>
-  <main id="main-content"><div class="loading">Loading…</div></main>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <h2>Dashboard</h2>
+      <div class="grid-4" id="dash-stats"></div>
+      <div class="two-col">
+        <div class="section">
+          <h3>Last 8 weeks</h3>
+          <div id="weekly-chart" class="bar-chart"></div>
+        </div>
+        <div class="section">
+          <h3>Goal progress</h3>
+          <div id="dash-goals"></div>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Recent runs</h3>
+        <div id="dash-recent"></div>
+      </div>
+    </div>
+
+    <!-- LOG RUN -->
+    <div class="page" id="page-log">
+      <h2>Log a run</h2>
+      <div class="section">
+        <div class="grid-2">
+          <div class="form-group"><label>Date</label><input type="date" id="log-date"></div>
+          <div class="form-group"><label>Run name</label><input type="text" id="log-name" placeholder="Morning run..."></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Distance (km)</label><input type="number" id="log-dist" step="0.01" placeholder="5.00" oninput="updatePacePreview()"></div>
+          <div class="form-group"><label>Time (mm:ss)</label><input type="text" id="log-time" placeholder="25:00" oninput="updatePacePreview()"></div>
+          <div class="form-group"><label>Elevation (m)</label><input type="number" id="log-elev" placeholder="0"></div>
+        </div>
+        <div id="pace-preview" class="pace-preview" style="display:none"></div>
+        <div class="form-group">
+          <label>Feel</label>
+          <div class="tag-list" id="feel-tags">
+            <button class="tag" data-tag="Easy">Easy</button>
+            <button class="tag" data-tag="Moderate">Moderate</button>
+            <button class="tag" data-tag="Hard">Hard</button>
+            <button class="tag" data-tag="PR Effort">PR Effort</button>
+            <button class="tag" data-tag="Recovery">Recovery</button>
+            <button class="tag" data-tag="Tempo">Tempo</button>
+            <button class="tag" data-tag="Long">Long</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="log-notes" rows="2" placeholder="How did it go?"></textarea></div>
+      </div>
+
+      <div class="section">
+        <h3>Strava screenshot / proof image</h3>
+        <p class="field-note" style="margin-bottom:10px">Upload your Strava activity screenshot to create a verified run on the leaderboard.</p>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('strava-upload').click()">
+          <i class="upload-icon">↑</i>
+          <span>Click to upload Strava screenshot</span>
+          <input type="file" id="strava-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+        </div>
+        <div id="upload-preview"></div>
+      </div>
+
+      <div class="section">
+        <h3>Draw your route</h3>
+        <div id="map-log" class="map-div"></div>
+        <div class="map-ctrl">
+          <button class="btn btn-ghost btn-sm" onclick="clearMap('log')">Clear</button>
+          <button class="btn btn-ghost btn-sm" onclick="undoLast('log')">Undo</button>
+          <span class="map-hint">Click to trace your route</span>
+        </div>
+      </div>
+      <button class="btn btn-primary w100" onclick="saveRun()">Save Run</button>
+    </div>
+
+    <!-- LIVE TRACK -->
+    <div class="page" id="page-live">
+      <h2>Live Track</h2>
+      <div class="section">
+        <p class="field-note" style="margin-bottom:12px">Track your run in real-time using GPS. Your route, pace and stats are recorded live and saved automatically when you finish.</p>
+        <div id="live-status" class="live-status live-idle">
+          <span id="live-status-text">Ready to run</span>
+        </div>
+        <div class="grid-3" style="margin:14px 0" id="live-stats">
+          <div class="stat-card"><div class="val" id="live-dist">0.00</div><div class="lbl">km</div></div>
+          <div class="stat-card"><div class="val" id="live-pace">—</div><div class="lbl">Current pace</div></div>
+          <div class="stat-card"><div class="val" id="live-time">00:00</div><div class="lbl">Time</div></div>
+        </div>
+        <div id="map-live" class="map-div" style="height:320px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="btn-start-live" onclick="startLiveRun()">Start Run</button>
+          <button class="btn btn-ghost" id="btn-stop-live" onclick="stopLiveRun()" style="display:none">Finish & Save</button>
+          <button class="btn btn-danger-ghost" id="btn-discard-live" onclick="discardLiveRun()" style="display:none">Discard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="page" id="page-history">
+      <h2>Run history</h2>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <input type="text" id="search-runs" placeholder="Search runs..." oninput="Runs.renderHistory()" style="flex:1;min-width:120px">
+        <select id="sort-runs" onchange="Runs.renderHistory()">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="longest">Longest</option>
+          <option value="fastest">Fastest</option>
+        </select>
+      </div>
+      <div id="run-detail" class="run-detail"></div>
+      <div id="run-list"></div>
+    </div>
+
+    <!-- PLAN -->
+    <div class="page" id="page-plan">
+      <h2>Plan a run</h2>
+      <div class="section">
+        <div class="grid-2">
+          <div class="form-group"><label>Date</label><input type="date" id="plan-date"></div>
+          <div class="form-group"><label>Target distance (km)</label><input type="number" id="plan-dist" step="0.1" placeholder="10" oninput="renderPaceEstimate()"></div>
+        </div>
+        <div class="form-group"><label>Elevation gain (m)</label><input type="number" id="plan-elev" step="10" placeholder="0" oninput="renderPaceEstimate()"></div>
+        <div class="form-group">
+          <label>Run type</label>
+          <div class="tag-list" id="plan-type-tags">
+            <button class="tag" data-tag="Easy">Easy</button>
+            <button class="tag" data-tag="Tempo">Tempo</button>
+            <button class="tag" data-tag="Intervals">Intervals</button>
+            <button class="tag" data-tag="Long Run">Long Run</button>
+            <button class="tag" data-tag="Race">Race</button>
+            <button class="tag" data-tag="Recovery">Recovery</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea id="plan-notes" rows="2" placeholder="Warm up 10min, then..."></textarea></div>
+      </div>
+      <div class="section">
+        <h3>Pace estimate from your history</h3>
+        <div id="pace-estimate"></div>
+      </div>
+      <div class="section">
+        <h3>Segment pace strategy</h3>
+        <div id="pace-strategy"></div>
+        <button class="btn btn-ai" style="margin-top:10px" onclick="getAIStrategy()" id="btn-ai-strat">AI pace strategy ✦</button>
+      </div>
+      <div class="section">
+        <h3>Draw planned route</h3>
+        <div id="map-plan" class="map-div"></div>
+        <div class="map-ctrl">
+          <button class="btn btn-ghost btn-sm" onclick="clearMap('plan')">Clear</button>
+          <button class="btn btn-ghost btn-sm" onclick="undoLast('plan')">Undo</button>
+          <span class="map-hint">Click to draw your planned route</span>
+        </div>
+      </div>
+      <button class="btn btn-primary w100" onclick="savePlan()">Save Plan</button>
+      <div id="saved-plans" style="margin-top:16px"></div>
+    </div>
+
+    <!-- AI COACH -->
+    <div class="page" id="page-coach">
+      <h2>AI Coach <span class="ai-badge">✦ Groq</span></h2>
+      <div id="coach-no-key" class="warn-box" style="display:none">
+        No Groq API key — add it in <button class="link-btn" onclick="showPage('settings')">Settings</button>
+      </div>
+      <div class="section">
+        <h3>Your warmup routine</h3>
+        <textarea id="warmup-txt" rows="4" placeholder="Describe your warmup: 5min walk, leg swings, strides..." oninput="saveWarmup()"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-ai btn-sm" onclick="genWarmup()">Generate for me ✦</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleWarmupDisplay()">View formatted</button>
+        </div>
+        <div id="warmup-display" class="warmup-display" style="display:none"></div>
+      </div>
+      <div class="section">
+        <h3>Coach chat</h3>
+        <div class="chat-window" id="chat-window">
+          <div class="msg msg-ai">Hey! I'm your AI running coach. I have your full run history and goals. Ask me anything.</div>
+        </div>
+        <div class="chat-row">
+          <input type="text" id="chat-in" placeholder="Ask your coach..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="btn btn-ai" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Quick insights</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ai btn-sm" onclick="qi('improve')">How to improve ✦</button>
+          <button class="btn btn-ai btn-sm" onclick="qi('stats')">Analyze stats ✦</button>
+          <button class="btn btn-ai btn-sm" onclick="qi('recovery')">Recovery check ✦</button>
+          <button class="btn btn-ai btn-sm" onclick="qi('week')">Plan my week ✦</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="page" id="page-leaderboard">
+      <h2>Leaderboard</h2>
+      <div class="lb-tabs">
+        <button class="lbtab active" onclick="switchLB('local')">My Stats</button>
+        <button class="lbtab" onclick="switchLB('global')">Global</button>
+        <button class="lbtab" onclick="switchLB('verified')">Verified Runs</button>
+      </div>
+      <div id="lb-local" class="lb-panel active"></div>
+      <div id="lb-global" class="lb-panel"></div>
+      <div id="lb-verified" class="lb-panel"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <h2>Settings</h2>
+
+      <div class="section">
+        <h3>Groq API key</h3>
+        <p class="field-note" style="margin-bottom:10px">Free key at <a href="https://console.groq.com" target="_blank">console.groq.com</a> — stored only on your device, never sent anywhere except Groq.</p>
+        <div class="form-group"><label>API key</label><input type="password" id="settings-groq" placeholder="gsk_..."></div>
+        <button class="btn btn-primary btn-sm" onclick="saveGroqKey()">Save key</button>
+        <span id="key-saved-msg" style="display:none;font-size:12px;color:var(--green);margin-left:10px">Saved!</span>
+      </div>
+
+      <div class="section">
+        <h3>Profile</h3>
+        <div class="grid-2">
+          <div class="form-group"><label>Display name</label><input type="text" id="s-display" oninput="saveProfile()"></div>
+          <div class="form-group"><label>Weight (kg)</label><input type="number" id="s-weight" placeholder="70" oninput="saveProfile()"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>5k PR (mm:ss)</label><input type="text" id="s-5k" placeholder="22:30" oninput="saveProfile()"></div>
+          <div class="form-group"><label>10k PR (mm:ss)</label><input type="text" id="s-10k" placeholder="48:00" oninput="saveProfile()"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Weekly goals</h3>
+        <div class="grid-3">
+          <div class="form-group"><label>Distance (km)</label><input type="number" id="g-km" placeholder="30" oninput="saveGoals()"></div>
+          <div class="form-group"><label>Runs</label><input type="number" id="g-runs" placeholder="4" oninput="saveGoals()"></div>
+          <div class="form-group"><label>Time (min)</label><input type="number" id="g-time" placeholder="180" oninput="saveGoals()"></div>
+        </div>
+        <div class="toggle-row">
+          <span>Enable pace goal</span>
+          <div class="toggle" id="pace-tog" onclick="togglePaceGoal()"></div>
+        </div>
+        <div id="pace-goal-inputs" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="g-pace-min" value="5" min="3" max="15" style="width:64px">
+            <span style="color:var(--muted)">:</span>
+            <input type="number" id="g-pace-sec" value="30" min="0" max="59" style="width:64px">
+            <span class="muted-text">/km</span>
+            <select id="g-pace-dir" style="width:auto" onchange="saveGoals()">
+              <option value="under">Faster than</option>
+              <option value="over">Slower than</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- MULTI-DEVICE SYNC -->
+      <div class="section">
+        <h3>Multi-device sync <span style="font-size:11px;color:var(--muted2);font-weight:400">via this repo</span></h3>
+        <div id="sync-not-configured" style="display:none">
+          <div class="warn-box" style="margin-bottom:12px">
+            Sync is not configured. Edit <code>sync-config.js</code> in your repo with your GitHub username, repo name, and a fine-grained PAT (Contents: read &amp; write on this repo only).
+            <br><a href="https://github.com/settings/tokens?type=beta" target="_blank" style="font-size:11px">Create token →</a>
+          </div>
+        </div>
+        <div id="sync-configured" style="display:none">
+          <p class="field-note" style="margin-bottom:12px">
+            Your runs sync to <code id="sync-repo-label"></code> automatically whenever you save a run (5s delay) and when you open the app (if &gt;10 min since last sync).
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="doSyncPushSettings()">Push now ↑</button>
+            <button class="btn btn-ghost btn-sm" onclick="doSyncPullSettings()">Pull now ↓</button>
+          </div>
+          <div id="sync-settings-msg" style="font-size:12px;color:var(--muted2);margin-top:8px"></div>
+          <p id="settings-last-sync" style="font-size:11px;color:var(--muted);margin-top:6px">Never synced</p>
+        </div>
+      </div>
+
+      <!-- DATA -->
+      <div class="section">
+        <h3>Data &amp; backup</h3>
+        <p class="field-note" style="margin-bottom:10px">
+          Export your account as a <strong>.sql file</strong> — this includes your hashed password and all run data.
+          Use it to restore your account on a new device via the login screen. Your password is stored as a scrambled SHA-256 hash with a per-account unscrambling key inside the file — it cannot be read without your password.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="exportData()">Export .sql backup</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export JSON (data only)</button>
+          <button class="btn btn-danger-ghost btn-sm" onclick="clearData()">Delete my account</button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
 </div>
 
-<div class="notif" id="notif"></div>
-<div class="sav" id="sav">💾 Saving…</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/maps.js"></script>
+<script src="js/runs.js"></script>
+<script src="js/coach.js"></script>
+<script src="js/leaderboard.js"></script>
+<script src="js/live.js"></script>
+<script src="js/app.js"></script>
 
 <script>
-// ══════════════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════════════
-const GH_OWNER  = "YOUR_GITHUB_USERNAME";
-const GH_REPO   = "YOUR_REPO_NAME";
-const GH_BRANCH = "main";
-// Fine-grained PAT — Contents read+write on this repo only
-// github.com/settings/tokens → Fine-grained → this repo → Contents: R+W
-const GH_TOKEN  = "github_pat_XXXX";
-
-const GUESSING_ANSWERS = {
-  0:"blue",1:"pizza",2:"rpg",3:"japan",4:"coffee",
-  5:"night owl",6:"cats",7:"winter",8:"pc",9:"metal"
-};
-
-const EVENTS = [
-  {id:"trivia",  title:"Trivia Night",           date:"2025-06-05T00:00:00",emoji:"🧠"},
-  {id:"boss",    title:"Boss Raid",               date:"2025-06-10T00:00:00",emoji:"⚔️"},
-  {id:"guess",   title:"Guessing Games",          date:"2025-06-15T00:00:00",emoji:"🎯"},
-  {id:"breather",title:"Breathe In, Breathe Out", date:"2025-06-20T00:00:00",emoji:"💨"},
-  {id:"casino",  title:"Casino Night",            date:"2025-06-25T00:00:00",emoji:"🎰"},
-];
-
-// ══════════════════════════════════════════════════
-// GITHUB API
-// ══════════════════════════════════════════════════
-const RAW      = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/data`;
-const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/data`;
-const _cache   = {};
-
-async function ghRead(file) {
-  if (_cache[file]) return _cache[file];
-  const res = await fetch(`${RAW}/${file}?t=${Date.now()}`);
-  if (!res.ok) return null;
-  const d = await res.json();
-  _cache[file] = d;
-  return d;
+// Settings page sync helpers
+async function doSyncPush() {
+  const token = document.getElementById('settings-sync-token').value.trim();
+  const msgEl = document.getElementById('sync-settings-msg');
+  if (!token) { msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Enter a GitHub token first.'; return; }
+  Auth.saveSyncToken(token);
+  msgEl.style.color = 'var(--muted2)'; msgEl.textContent = 'Pushing...';
+  const r = await Auth.pushSync();
+  if (r.err) { msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Error: ' + r.err; return; }
+  document.getElementById('settings-gist-id').value = r.gistId;
+  msgEl.style.color = 'var(--green)'; msgEl.textContent = '✓ Pushed! Gist ID saved above.';
+  document.getElementById('settings-last-sync').textContent = `Last synced: ${new Date().toLocaleString()}`;
 }
 
-async function ghWrite(file, data) {
-  showSav(true);
-  const infoRes = await fetch(`${GH_API}/${file}`, {
-    headers:{ Authorization:`Bearer ${GH_TOKEN}`, Accept:"application/vnd.github+json" }
-  });
-  const sha = infoRes.ok ? (await infoRes.json()).sha : undefined;
-  const body = {
-    message:`update ${file}`,
-    content: btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)))),
-    branch: GH_BRANCH,
-  };
-  if (sha) body.sha = sha;
-  const res = await fetch(`${GH_API}/${file}`, {
-    method:"PUT",
-    headers:{ Authorization:`Bearer ${GH_TOKEN}`, Accept:"application/vnd.github+json", "Content-Type":"application/json" },
-    body: JSON.stringify(body),
-  });
-  showSav(false);
-  delete _cache[file];
-  if (!res.ok) throw new Error((await res.json()).message || "write failed");
+async function doSyncPullSettings() {
+  const token = document.getElementById('settings-sync-token').value.trim();
+  const gistId = document.getElementById('settings-gist-id').value.trim();
+  const msgEl = document.getElementById('sync-settings-msg');
+  if (!token || !gistId) { msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Enter both token and Gist ID.'; return; }
+  Auth.saveSyncToken(token);
+  localStorage.setItem(`rt_${Auth.current.username}_gist_id`, gistId);
+  msgEl.style.color = 'var(--muted2)'; msgEl.textContent = 'Pulling...';
+  const r = await Auth.pullSync(gistId, token);
+  if (r.err) { msgEl.style.color = 'var(--red)'; msgEl.textContent = 'Error: ' + r.err; return; }
+  msgEl.style.color = 'var(--green)'; msgEl.textContent = '✓ Data pulled! Reload to see changes.';
+  document.getElementById('settings-last-sync').textContent = `Last synced: ${new Date().toLocaleString()}`;
 }
-
-async function ghUpdate(file, def, fn) {
-  for (let i=0; i<3; i++) {
-    try {
-      delete _cache[file];
-      const cur = (await ghRead(file)) ?? def;
-      const next = fn(JSON.parse(JSON.stringify(cur)));
-      if (next === false) return cur;
-      await ghWrite(file, next);
-      _cache[file] = next;
-      return next;
-    } catch(e) {
-      if (i < 2) await sleep(700*(i+1)); else throw e;
-    }
-  }
-}
-
-// ══════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════
-let me = null;  // { key, discord_id, username, tickets }
-let activeTab = null;
-let triviaAnswers = {};
-let guessingAnswers = {};
-let bossPlayer = null;
-let bossTimer = null;
-let cdTick = null;
-
-// ══════════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════════
-const $ = id => document.getElementById(id);
-const sleep = ms => new Promise(r => setTimeout(r,ms));
-function showSav(v){ $("sav").className = v ? "sav show" : "sav" }
-function notify(msg, type="ok"){
-  const n=$("notif"); n.textContent=msg; n.className=`notif show ${type}`;
-  clearTimeout(n._t); n._t=setTimeout(()=>n.className="notif",3500);
-}
-function fmtDate(d){ return new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) }
-function timeUntil(ds){
-  const diff=new Date(ds)-Date.now(); if(diff<=0) return null;
-  return {d:Math.floor(diff/86400000),h:Math.floor(diff%86400000/3600000),
-          m:Math.floor(diff%3600000/60000),s:Math.floor(diff%60000/1000)};
-}
-function cdHTML(ds, label){
-  const t=timeUntil(ds); if(!t) return "";
-  return `<div class="cd-wrap"><div class="cd-label">${label}</div><div class="cd-timer">
-    <div class="cd-unit"><span class="n" id="cd-d">${t.d}</span><span class="l">Days</span></div>
-    <div class="cd-unit"><span class="n" id="cd-h">${t.h}</span><span class="l">Hours</span></div>
-    <div class="cd-unit"><span class="n" id="cd-m">${t.m}</span><span class="l">Mins</span></div>
-    <div class="cd-unit"><span class="n" id="cd-s">${t.s}</span><span class="l">Secs</span></div>
-  </div></div>`;
-}
-function startCd(ds){
-  clearInterval(cdTick);
-  cdTick=setInterval(()=>{
-    const t=timeUntil(ds); if(!t){clearInterval(cdTick);return}
-    if($("cd-d"))$("cd-d").textContent=t.d;
-    if($("cd-h"))$("cd-h").textContent=t.h;
-    if($("cd-m"))$("cd-m").textContent=t.m;
-    if($("cd-s"))$("cd-s").textContent=t.s;
-  },1000);
-}
-function evHdr(ev){
-  return `<div class="event-header"><div class="event-title">${ev.emoji} ${ev.title}</div>
-    <div class="event-date-lbl">📅 ${fmtDate(ev.date)}</div></div>`;
-}
-
-// ══════════════════════════════════════════════════
-// LOGIN
-// ══════════════════════════════════════════════════
-async function doLogin(){
-  const raw = ($("key-input")?.value||"").trim().toUpperCase();
-  if (!raw){ $("login-error").textContent="Enter your key."; return; }
-
-  $("login-error").textContent="Checking…";
-  try {
-    const keys = await ghRead("keys.json");
-    if (!keys){ $("login-error").textContent="Could not reach server."; return; }
-
-    const entry = keys[raw];
-    if (!entry){ $("login-error").textContent="Invalid key. Check your key and try again."; return; }
-
-    // Mark claimed if first time
-    if (!entry.claimed){
-      await ghUpdate("keys.json", {}, k=>{
-        k[raw].claimed = true;
-        k[raw].claimed_at = new Date().toISOString();
-        return k;
-      });
-    }
-
-    // Load ticket balance
-    const tickets_data = await ghRead("tickets.json") ?? {};
-    const tickets = tickets_data[entry.discord_id]?.tickets ?? 0;
-
-    me = { key: raw, discord_id: entry.discord_id, username: entry.username, tickets };
-    localStorage.setItem("intra_session", JSON.stringify({ key: raw, discord_id: entry.discord_id, username: entry.username }));
-
-    $("login-wall").classList.add("hidden");
-    renderAuth();
-    buildTabs();
-    showTab("home");
-  } catch(e){
-    $("login-error").textContent = "Error — try again.";
-    console.error(e);
-  }
-}
-
-function doLogout(){
-  me = null;
-  localStorage.removeItem("intra_session");
-  $("login-wall").classList.remove("hidden");
-  $("key-input").value = "";
-  $("login-error").textContent = "";
-}
-
-async function restoreSession(){
-  const saved = localStorage.getItem("intra_session");
-  if (!saved) return false;
-  try {
-    const s = JSON.parse(saved);
-    // Re-validate key still exists
-    const keys = await ghRead("keys.json");
-    if (!keys || !keys[s.key]) { localStorage.removeItem("intra_session"); return false; }
-    const tickets_data = await ghRead("tickets.json") ?? {};
-    const tickets = tickets_data[s.discord_id]?.tickets ?? 0;
-    me = { ...s, tickets };
-    return true;
-  } catch{ return false; }
-}
-
-// ══════════════════════════════════════════════════
-// TICKETS
-// ══════════════════════════════════════════════════
-async function addTickets(discord_id, amount, reason){
-  await ghUpdate("tickets.json", {}, t=>{
-    t[discord_id] = t[discord_id] ?? { tickets:0, history:[] };
-    t[discord_id].tickets = Math.max(0,(t[discord_id].tickets||0)+amount);
-    t[discord_id].history.push({ amount, reason, ts:new Date().toISOString() });
-    return t;
-  });
-  if (me?.discord_id === discord_id){
-    me.tickets = (me.tickets||0) + amount;
-    renderAuth();
-  }
-}
-
-async function refreshTickets(){
-  if (!me) return;
-  const t = await ghRead("tickets.json") ?? {};
-  me.tickets = t[me.discord_id]?.tickets ?? 0;
-  delete _cache["tickets.json"];
-  renderAuth();
-}
-
-// ══════════════════════════════════════════════════
-// AUTH BAR
-// ══════════════════════════════════════════════════
-function renderAuth(){
-  const bar = $("auth-bar");
-  if (!me){ bar.innerHTML=""; return; }
-  const initials = me.username.slice(0,2).toUpperCase();
-  bar.innerHTML = `
-    <div class="user-pill">
-      <div class="user-avatar">${initials}</div>
-      <div>
-        <div class="user-name">@${me.username}</div>
-      </div>
-    </div>
-    <span class="ticket-count">🎫 ${me.tickets}</span>
-    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>`;
-}
-
-// ══════════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════════
-function buildTabs(){
-  const now = Date.now();
-  const visible = EVENTS.filter(e=>{
-    const d = new Date(e.date); d.setDate(d.getDate()+1);
-    return now < d;
-  });
-  $("tabs-nav").innerHTML =
-    `<button class="tab-btn ${activeTab==="home"?"active":""}" onclick="showTab('home')">🏠 Home</button>`
-    + visible.map(e=>`<button class="tab-btn ${activeTab===e.id?"active":""}" onclick="showTab('${e.id}')">
-        ${e.emoji} ${e.title}<span class="edate">${fmtDate(e.date)}</span></button>`).join("")
-    + `<button class="tab-btn ${activeTab==="lb"?"active":""}" onclick="showTab('lb')">🏆 Leaderboard</button>`;
-}
-
-function showTab(id){
-  activeTab=id; buildTabs(); clearInterval(bossTimer);
-  const m=$("main-content");
-  switch(id){
-    case "home":    m.innerHTML=renderHome(); break;
-    case "trivia":  renderTrivia(m); break;
-    case "boss":    renderBoss(m); break;
-    case "guess":   renderGuess(m); break;
-    case "breather":m.innerHTML=renderBreather(); break;
-    case "casino":  m.innerHTML=renderCasino(); break;
-    case "lb":      renderLB(m); break;
-  }
-}
-
-// ══════════════════════════════════════════════════
-// HOME
-// ══════════════════════════════════════════════════
-function renderHome(){
-  const now=Date.now();
-  return `<div class="event-header">
-    <div class="event-title">Welcome, @${me?.username||"Guest"}</div>
-    <div class="event-date-lbl">INTRA Events — June 2025</div>
-  </div>
-  <div class="grid2">
-    ${EVENTS.map(e=>{
-      const past = new Date(e.date)<new Date(now-86400000);
-      return `<div class="card" style="${past?"opacity:.35":""}">
-        <div style="font-size:1.8rem;margin-bottom:.4rem">${e.emoji}</div>
-        <div style="font-family:'Cinzel Decorative',serif;color:var(--gold);font-size:.88rem;margin-bottom:.2rem">${e.title}</div>
-        <div style="color:var(--text3);font-size:.75rem;margin-bottom:.65rem">📅 ${fmtDate(e.date)}</div>
-        ${past?`<span class="tag tag-purple">Done</span>`:`<button class="btn btn-ghost btn-sm" onclick="showTab('${e.id}')">View →</button>`}
-      </div>`;
-    }).join("")}
-  </div>
-  <div class="card">
-    <div class="card-title">🎫 Tickets</div>
-    <p style="color:var(--text2);font-size:.85rem;line-height:1.75">Earn tickets by participating in events. Redeem codes dropped during events for bonus tickets. Check the leaderboard to see your standing.</p>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════
-// REDEEM
-// ══════════════════════════════════════════════════
-async function handleRedeem(){
-  const code=($("code-input")?.value||"").trim().toUpperCase();
-  if (!code) return;
-  const msg=$("redeem-msg"); msg.textContent="…"; msg.className="";
-  try {
-    const codes=await ghRead("codes.json")??{};
-    const c=codes[code];
-    if (!c){ msg.textContent="❌ Invalid"; msg.className="err"; return; }
-    if (c.used){ msg.textContent="❌ Already used"; msg.className="err"; return; }
-    if (c.expires && Date.now()/1000>c.expires){ msg.textContent="❌ Expired"; msg.className="err"; return; }
-    if ((c.redeemed_by||[]).includes(me.discord_id)){ msg.textContent="❌ Already redeemed"; msg.className="err"; return; }
-
-    await ghUpdate("codes.json",{},cs=>{
-      cs[code].redeemed_by=[...(cs[code].redeemed_by||[]),me.discord_id];
-      cs[code].used=true; return cs;
-    });
-    await addTickets(me.discord_id, c.reward||5, `code:${code}`);
-    msg.textContent=`✅ +${c.reward||5} tickets!`; msg.className="ok";
-    notify(`+${c.reward||5} tickets! 🎫`);
-    $("code-input").value="";
-  } catch(e){ msg.textContent="❌ Error"; msg.className="err"; }
-}
-
-// ══════════════════════════════════════════════════
-// EVENT 1 — TRIVIA
-// ══════════════════════════════════════════════════
-const TQS=[
-  {id:0,q:"What is the capital of France?",         a:"Paris",       choices:["London","Paris","Berlin","Madrid"],hard:false},
-  {id:1,q:"What is 12 × 12?",                       a:"144",         choices:["132","144","156","168"],hard:false},
-  {id:2,q:"Which planet is closest to the Sun?",    a:"Mercury",     choices:["Venus","Earth","Mercury","Mars"],hard:false},
-  {id:3,q:"What year did World War II end?",         a:"1945",        choices:["1943","1944","1945","1946"],hard:false},
-  {id:4,q:"What is the chemical symbol for gold?",  a:"Au",          choices:["Go","Ag","Au","Gd"],hard:false},
-  {id:5,q:"Who wrote Romeo and Juliet?",            a:"Shakespeare", choices:["Dickens","Shakespeare","Hemingway","Chaucer"],hard:false},
-  {id:6,q:"When was INTRA first founded?",          a:"6/18/2025",   choices:["1/1/2025","3/15/2025","6/18/2025","12/1/2024"],hard:true},
-  {id:7,q:"Which news outlet did INTRA code a bot for?",a:"OCN",     choices:["RSN","OCN","El Dorado","Magnum Opus"],hard:true},
-  {id:8,q:"Who is the REAL owner of INTRA?",        a:"Sumnor",      choices:["Sumnor","Luna","SumTingWong","George Long"],hard:true},
-  {id:9,q:"How many planets are in our solar system?",a:"8",         choices:["7","8","9","10"],hard:false},
-];
-
-async function renderTrivia(m){
-  const ev=EVENTS.find(e=>e.id==="trivia");
-  const t=timeUntil(ev.date);
-  if(t){m.innerHTML=evHdr(ev)+cdHTML(ev.date,"Trivia Night starts in");startCd(ev.date);return;}
-
-  const data=await ghRead("trivia.json")??{};
-  if(data[me.discord_id]?.done){
-    m.innerHTML=evHdr(ev)+`<div class="card"><div class="card-title">✅ Submitted</div>
-      <p style="color:var(--text2);font-size:.85rem">Score: <span class="gold">${data[me.discord_id].score}/10</span> — results after the event.</p></div>`;
-    return;
-  }
-
-  let html=evHdr(ev)+`<div class="card"><div class="card-title">Rules</div>
-    <p style="color:var(--text2);font-size:.85rem;margin-bottom:.9rem">Answer all 10. Everyone who participates gets <span class="gold">+2 tickets</span>. Top 10 get bonus tickets.</p>
-    <table class="rtable"><thead><tr><th>Rank</th><th>Bonus</th></tr></thead><tbody>
-      <tr><td>🥇 1st</td><td class="gold">+20</td></tr><tr><td>🥈 2nd</td><td class="gold">+15</td></tr>
-      <tr><td>🥉 3rd</td><td class="gold">+10</td></tr><tr><td>Top 10</td><td class="gold">+5</td></tr>
-      <tr><td>Participation</td><td class="gold">+2</td></tr>
-    </tbody></table></div>`;
-  TQS.forEach(q=>{
-    html+=`<div class="qcard"><div class="qt">Q${q.id+1}. ${q.q}${q.hard?`<span class="hard-tag">★ HARD</span>`:""}</div>
-      <div class="choices">${q.choices.map(c=>`<button class="choice" onclick="selTrivia(${q.id},'${c}',this)">${c}</button>`).join("")}</div>
-    </div>`;
-  });
-  html+=`<button class="btn btn-gold" onclick="submitTrivia()" style="margin-top:.9rem">Submit 🎯</button>`;
-  m.innerHTML=html;
-}
-
-function selTrivia(qid,val,btn){
-  btn.closest(".qcard").querySelectorAll(".choice").forEach(b=>b.classList.remove("sel"));
-  btn.classList.add("sel"); triviaAnswers[qid]=val;
-}
-
-async function submitTrivia(){
-  if(Object.keys(triviaAnswers).length<TQS.length){notify("Answer all questions first","err");return;}
-  const score=TQS.reduce((s,q)=>s+(triviaAnswers[q.id]===q.a?1:0),0);
-  try {
-    await ghUpdate("trivia.json",{},t=>{
-      if(t[me.discord_id]?.done) return false;
-      t[me.discord_id]={score,done:true,ts:new Date().toISOString()};return t;
-    });
-    await addTickets(me.discord_id,2,"trivia:participation");
-    notify(`Submitted! ${score}/10 — +2 tickets`);
-    renderTrivia($("main-content"));
-  } catch(e){notify("Save failed","err");}
-}
-
-// ══════════════════════════════════════════════════
-// EVENT 2 — BOSS RAID
-// ══════════════════════════════════════════════════
-const BOSS_MAX=500000;
-const CLASS_STATS={
-  assassin:{hp:800,mana:600,stamina:700,dmg:120},
-  tank:    {hp:2000,mana:400,stamina:1200,dmg:60},
-  supporter:{hp:900,mana:1200,stamina:500,dmg:40},
-  mage:    {hp:700,mana:1500,stamina:400,dmg:100},
-};
-
-async function renderBoss(m){
-  const ev=EVENTS.find(e=>e.id==="boss");
-  const t=timeUntil(ev.date);
-  if(t){m.innerHTML=evHdr(ev)+cdHTML(ev.date,"Boss Raid begins in");startCd(ev.date);return;}
-
-  const raid=(await ghRead("boss_raid.json"))??{hp:BOSS_MAX,max_hp:BOSS_MAX,players:{},log:[],active:true,turn:0};
-  bossPlayer=raid.players[me.discord_id]??null;
-  const pct=Math.max(0,raid.hp/raid.max_hp*100);
-
-  let html=evHdr(ev)+`<div class="boss-wrap">
-    <div class="boss-name">🐉 Drak'Thul the Undying</div>
-    <div class="hp-track"><div class="hp-fill" id="bfill" style="width:${pct}%"></div></div>
-    <div class="hp-txt" id="bhp">${raid.hp.toLocaleString()} / ${raid.max_hp.toLocaleString()} HP</div>
-    ${!raid.active?`<div style="text-align:center;margin-top:.9rem;color:var(--green);font-family:'Cinzel Decorative',serif">💀 BOSS DEFEATED!</div>`:""}
-  </div>
-  <div class="card"><div class="card-title">Battle Log</div>
-    <div class="blog" id="blog">${(raid.log||[]).slice(-20).reverse().map(l=>`<div>${l}</div>`).join("")||'<div style="color:var(--text3)">No actions yet…</div>'}</div>
-  </div>`;
-
-  if(!bossPlayer){
-    html+=`<div class="card"><div class="card-title">Choose Your Class</div>
-      <div class="class-grid">${[
-        ["assassin","🗡️","Swift attacks & hide"],
-        ["tank","🛡️","Protect and absorb"],
-        ["supporter","✨","Heal and bless allies"],
-        ["mage","🔮","Arcane burst damage"],
-      ].map(([cls,ic,dc])=>`<div class="class-btn" onclick="selClass('${cls}',this)">
-        <span class="class-icon">${ic}</span>
-        <div class="class-name">${cls[0].toUpperCase()+cls.slice(1)}</div>
-        <div class="class-desc">${dc}</div>
-      </div>`).join("")}</div>
-      <button class="btn btn-gold" onclick="joinBoss()" style="margin-top:.9rem">Join Raid ⚔️</button>
-    </div>`;
-  } else {
-    html+=bossPlayerHTML(bossPlayer);
-  }
-  m.innerHTML=html;
-  bossTimer=setInterval(pollBoss,6000);
-}
-
-let selCls=null;
-function selClass(cls,el){selCls=cls;document.querySelectorAll(".class-btn").forEach(b=>b.classList.remove("sel"));el.classList.add("sel")}
-
-async function joinBoss(){
-  if(!selCls){notify("Pick a class","err");return;}
-  const s=CLASS_STATS[selCls];
-  const p={name:me.username,class:selCls,hp:s.hp,max_hp:s.hp,mana:s.mana,max_mana:s.mana,
-    stamina:s.stamina,max_stamina:s.stamina,xp:0,level:1,gold:200,dmg_base:s.dmg,
-    hp_pots:2,mana_pots:2,buffs:[],hidden:false,arcane_nova_used:false,
-    soothing_voice_used:false,damage_share_used:false,participation:0};
-  try {
-    await ghUpdate("boss_raid.json",{hp:BOSS_MAX,max_hp:BOSS_MAX,players:{},log:[],active:true,turn:0},r=>{
-      if(r.players[me.discord_id]) return false;
-      r.players[me.discord_id]=p;
-      r.log=[...(r.log||[]),`${me.username} joined as ${selCls}!`];
-      return r;
-    });
-    notify("Joined!");bossPlayer=p;renderBoss($("main-content"));
-  } catch(e){notify("Failed","err");}
-}
-
-function bossPlayerHTML(p){
-  const skills={
-    assassin:[["attack","⚔️ Slash"],["hide","🌑 Hide"],["shadow_stab","🗡️ Shadow Stab"],["shadow_dimension","🌀 Shadow Dim"]],
-    tank:    [["attack","⚔️ Slash"],["aggro","😤 Aggro"],["shield","🛡️ Shield"],["damage_share","💪 Dmg Share"]],
-    supporter:[["attack","✨ Holy Fire"],["bless","💫 Bless"],["heal","💚 Heal"],["soothing_voice","🎵 Soothing Voice"]],
-    mage:    [["fireball","🔥 Fireball"],["blizzard","❄️ Blizzard"],["arcane_nova","✨ Arcane Nova"],["drink_mana_pot","🔵 Mana Pot"]],
-  }[p.class]||[["attack","⚔️ Attack"]];
-  return `<div class="card">
-    <div class="card-title">${p.name} — <span class="tag tag-cyan">${p.class}</span> <span class="tag tag-gold">Lv.${p.level}</span></div>
-    <div class="stat-row">
-      <div class="stat-b hp-c"><div class="sl">HP</div><div class="st"><div class="sf" style="width:${(p.hp/p.max_hp*100).toFixed(0)}%"></div></div><div class="sv">${p.hp}/${p.max_hp}</div></div>
-      <div class="stat-b mana-c"><div class="sl">Mana</div><div class="st"><div class="sf" style="width:${(p.mana/p.max_mana*100).toFixed(0)}%"></div></div><div class="sv">${p.mana}/${p.max_mana}</div></div>
-      <div class="stat-b stam-c"><div class="sl">Stamina</div><div class="st"><div class="sf" style="width:${(p.stamina/p.max_stamina*100).toFixed(0)}%"></div></div><div class="sv">${p.stamina}/${p.max_stamina}</div></div>
-    </div>
-    <div style="font-size:.72rem;color:var(--text3);margin-top:.55rem">
-      ⚗️ HP Pots: ${p.hp_pots} &nbsp;|&nbsp; 💧 Mana Pots: ${p.mana_pots} &nbsp;|&nbsp; 💰 Gold: ${p.gold} &nbsp;|&nbsp; XP: ${p.xp}</div>
-    <div class="act-grid">
-      ${skills.map(([a,l])=>`<button class="btn btn-ghost" onclick="bossAct('${a}')">${l}</button>`).join("")}
-      <button class="btn btn-ghost" onclick="bossAct('gather')">🌿 Gather (10m)</button>
-      <button class="btn btn-ghost" onclick="bossAct('farm')">👹 Farm Mobs (30m)</button>
-      <button class="btn btn-ghost" onclick="bossAct('drink_hp_pot')">🍶 HP Pot</button>
-      <button class="btn btn-ghost" onclick="bossAct('buy_pot')">🛒 Buy Pot (50g)</button>
-    </div>
-  </div>`;
-}
-
-async function bossAct(action){
-  const raid=await (async()=>{delete _cache["boss_raid.json"];return ghRead("boss_raid.json")})();
-  if(!raid||!raid.active){notify("Raid not active","err");return;}
-  const p=raid.players[me.discord_id];
-  if(!p){notify("Not joined","err");return;}
-  const pdmg=()=>Math.floor(p.dmg_base*(1+p.xp/5000)*(p.buffs?.some(b=>b.type==="bless")?1.5:1));
-  let logMsg="";
-  const cdCheck=(key,ms)=>{if(raid[key]&&Date.now()-raid[key]<ms){notify(`On cooldown — ${Math.ceil((ms-(Date.now()-raid[key]))/60000)}m left`,"err");return false;}return true;};
-
-  switch(action){
-    case "attack":{const d=pdmg()*(p.hidden?(p.hidden=false,1.2):1)|0;raid.hp=Math.max(0,raid.hp-d);logMsg=`${p.name} attacked for ${d}!`;p.participation=(p.participation||0)+2;break;}
-    case "hide":p.hidden=true;logMsg=`${p.name} hides.`;p.participation=(p.participation||0)+1;break;
-    case "shadow_stab":{const d=Math.floor(pdmg()*(p.hidden?1.5:1));p.hidden=false;raid.hp=Math.max(0,raid.hp-d);logMsg=`${p.name} shadow stabbed for ${d}!`;p.participation=(p.participation||0)+2;break;}
-    case "shadow_dimension":if(!p.shadow_dim){p.shadow_dim=true;p.hidden=true;logMsg=`${p.name} vanishes into shadow!`;p.participation=(p.participation||0)+1;}break;
-    case "bless":Object.values(raid.players).forEach(pl=>{pl.buffs=[...(pl.buffs||[]),{type:"bless",turns:1+Math.floor((p.level||1)/10)}]});logMsg=`${p.name} blesses all!`;p.participation=(p.participation||0)+2;break;
-    case "heal":{const h=Math.floor(p.max_hp*.1);p.hp=Math.min(p.max_hp,p.hp+h);logMsg=`${p.name} healed ${h} HP.`;p.participation=(p.participation||0)+2;break;}
-    case "soothing_voice":if(!p.soothing_voice_used){Object.values(raid.players).forEach(pl=>{pl.hp=Math.min(pl.max_hp,pl.hp+Math.floor(pl.max_hp*.5));pl.buffs=[...(pl.buffs||[]),{type:"bless",turns:4}]});p.mana=0;p.soothing_voice_used=true;logMsg="Soothing Voice! All healed 50%+blessed!";p.participation=(p.participation||0)+5;}break;
-    case "aggro":raid.boss_agro=me.discord_id;logMsg=`${p.name} taunts the boss!`;p.participation=(p.participation||0)+1;break;
-    case "shield":Object.values(raid.players).forEach(pl=>{pl.buffs=[...(pl.buffs||[]),{type:"shield",turns:1,val:Math.floor(p.hp*.1)}]});logMsg=`${p.name} shields all!`;p.participation=(p.participation||0)+2;break;
-    case "fireball":if(p.mana<80){notify("Need 80 mana","err");return;}else{const d=Math.floor(pdmg()*1.8);p.mana-=80;raid.hp=Math.max(0,raid.hp-d);logMsg=`${p.name} cast Fireball for ${d}!`;p.participation=(p.participation||0)+2;}break;
-    case "blizzard":if(p.mana<100){notify("Need 100 mana","err");return;}else{const d=Math.floor(pdmg()*1.4);p.mana-=100;raid.hp=Math.max(0,raid.hp-d);logMsg=`${p.name} cast Blizzard for ${d}!`;p.participation=(p.participation||0)+2;}break;
-    case "arcane_nova":if(p.arcane_nova_used){notify("Already used","err");return;}if(p.mana<200){notify("Need 200 mana","err");return;}else{const d=Math.floor(pdmg()*3);p.mana=0;p.arcane_nova_used=true;raid.hp=Math.max(0,raid.hp-d);logMsg=`✨ ARCANE NOVA! ${d}!!`;p.participation=(p.participation||0)+5;}break;
-    case "drink_hp_pot":if(!p.hp_pots){notify("No HP pots","err");return;}p.hp=Math.min(p.max_hp,p.hp+Math.floor(p.max_hp*.3));p.hp_pots--;logMsg=`${p.name} drank HP pot.`;break;
-    case "drink_mana_pot":if(!p.mana_pots){notify("No mana pots","err");return;}p.mana=Math.min(p.max_mana,p.mana+Math.floor(p.max_mana*.3));p.mana_pots--;logMsg=`${p.name} drank mana pot.`;break;
-    case "buy_pot":if(p.gold<50){notify("Need 50 gold","err");return;}p.gold-=50;p.hp_pots++;logMsg=`${p.name} bought HP pot.`;break;
-    case "gather":if(!cdCheck(`gc_${me.discord_id}`,600000))return;else{const x=50+Math.floor(Math.random()*100),g=20+Math.floor(Math.random()*40);p.xp+=x;p.gold+=g;p.level=Math.min(20,1+Math.floor(p.xp/500));raid[`gc_${me.discord_id}`]=Date.now();logMsg=`${p.name} gathered (+${x}XP +${g}g).`;}break;
-    case "farm":if(!cdCheck(`fc_${me.discord_id}`,1800000))return;else{const x=200+Math.floor(Math.random()*200),g=50+Math.floor(Math.random()*50);p.xp+=x;p.gold+=g;p.level=Math.min(20,1+Math.floor(p.xp/500));raid[`fc_${me.discord_id}`]=Date.now();logMsg=`${p.name} farmed mobs (+${x}XP +${g}g).`;}break;
-  }
-
-  // Boss counterattack
-  if(["attack","shadow_stab","fireball","blizzard","arcane_nova"].includes(action)&&raid.hp>0){
-    const tid=raid.boss_agro??me.discord_id;
-    const tp=raid.players[tid]||p;
-    const bd=800+Math.floor(Math.random()*700);
-    tp.hp=Math.max(0,tp.hp-bd);
-    if(tp.hp===0){tp.recovering=true;}
-    raid.log=[...(raid.log||[]),`Boss hit ${tp.name||tid} for ${bd}!`];
-  }
-
-  // Tick buffs
-  Object.values(raid.players).forEach(pl=>{pl.buffs=(pl.buffs||[]).map(b=>({...b,turns:b.turns-1})).filter(b=>b.turns>0)});
-
-  if(logMsg) raid.log=[...(raid.log||[]),logMsg];
-  raid.turn=(raid.turn||0)+1;
-  raid.players[me.discord_id]=p;
-  if(raid.hp<=0){raid.active=false;raid.log=[...(raid.log||[]),"💀 BOSS DEFEATED!"];}
-
-  try {
-    await ghWrite("boss_raid.json",raid);
-    delete _cache["boss_raid.json"];
-    bossPlayer=p;
-    if(logMsg) notify(logMsg);
-    if(raid.hp<=0){await addTickets(me.discord_id,5,"boss:participation");notify("Boss defeated! +5 🎫");}
-    pollBoss();
-  } catch(e){notify("Save failed","err");}
-}
-
-async function pollBoss(){
-  delete _cache["boss_raid.json"];
-  const r=await ghRead("boss_raid.json");if(!r)return;
-  const f=$("bfill"),h=$("bhp"),b=$("blog");
-  if(f)f.style.width=`${Math.max(0,r.hp/r.max_hp*100)}%`;
-  if(h)h.textContent=`${r.hp.toLocaleString()} / ${r.max_hp.toLocaleString()} HP`;
-  if(b)b.innerHTML=(r.log||[]).slice(-20).reverse().map(l=>`<div>${l}</div>`).join("");
-}
-
-// ══════════════════════════════════════════════════
-// EVENT 3 — GUESSING
-// ══════════════════════════════════════════════════
-const GQS=[
-  {id:0,q:"What is Sumnor's favorite color?"},
-  {id:1,q:"What is Sumnor's favorite food?"},
-  {id:2,q:"What is Sumnor's favorite game genre?"},
-  {id:3,q:"If Sumnor could visit one country, where?"},
-  {id:4,q:"What is Sumnor's go-to drink?"},
-  {id:5,q:"Morning person or night owl?"},
-  {id:6,q:"Cats or dogs?"},
-  {id:7,q:"What is Sumnor's favorite season?"},
-  {id:8,q:"PC or console?"},
-  {id:9,q:"What is Sumnor's favorite music type?"},
-];
-
-async function renderGuess(m){
-  const ev=EVENTS.find(e=>e.id==="guess");
-  const t=timeUntil(ev.date);
-  if(t){m.innerHTML=evHdr(ev)+cdHTML(ev.date,"Guessing Game starts in");startCd(ev.date);return;}
-
-  const d=await ghRead("guessing.json")??{};
-  if(d[me.discord_id]?.done){
-    m.innerHTML=evHdr(ev)+`<div class="card"><div class="card-title">✅ Submitted</div>
-      <p style="color:var(--text2);font-size:.85rem">Score: <span class="gold">${d[me.discord_id].score}/10</span></p></div>`;
-    return;
-  }
-
-  let html=evHdr(ev)+`<div class="card"><div class="card-title">Rules</div>
-    <p style="color:var(--text2);font-size:.85rem;margin-bottom:.9rem">Guess Sumnor's answers. If your answer contains the right word, it counts.</p>
-    <table class="rtable"><thead><tr><th>Rank</th><th>Tickets</th></tr></thead><tbody>
-      <tr><td>🥇 1st</td><td class="gold">+20</td></tr><tr><td>🥈 2nd</td><td class="gold">+10</td></tr>
-      <tr><td>🥉 3rd</td><td class="gold">+5</td></tr><tr><td>Participation</td><td class="gold">+1</td></tr>
-    </tbody></table></div>`;
-  html+=GQS.map(q=>`<div class="qcard"><div class="qt">Q${q.id+1}. ${q.q}</div>
-    <input class="ginput" id="g${q.id}" placeholder="Your answer…"></div>`).join("");
-  html+=`<button class="btn btn-gold" onclick="submitGuess()" style="margin-top:.9rem">Submit 🎯</button>`;
-  m.innerHTML=html;
-}
-
-async function submitGuess(){
-  const answers={};
-  GQS.forEach(q=>{answers[q.id]=($(`g${q.id}`)?.value||"").trim().toLowerCase()});
-  const score=GQS.reduce((s,q)=>{
-    const c=(GUESSING_ANSWERS[q.id]||"").toLowerCase();
-    return s+(answers[q.id].includes(c)?1:0);
-  },0);
-  try {
-    await ghUpdate("guessing.json",{},g=>{
-      if(g[me.discord_id]?.done) return false;
-      g[me.discord_id]={score,done:true,ts:new Date().toISOString()};return g;
-    });
-    await addTickets(me.discord_id,1,"guessing:participation");
-    const ev=EVENTS.find(e=>e.id==="guess");
-    const breakdown=GQS.map(q=>({q:q.q,correct:(answers[q.id]||"").includes((GUESSING_ANSWERS[q.id]||"").toLowerCase()),ans:GUESSING_ANSWERS[q.id]}));
-    let html=evHdr(ev)+`<div class="card"><div class="card-title">Results — ${score}/10</div>`;
-    breakdown.forEach(b=>{
-      html+=`<div style="display:flex;gap:.65rem;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--border)">
-        <span>${b.correct?"✅":"❌"}</span>
-        <div><div style="font-size:.8rem;color:var(--text2)">${b.q}</div>
-        <div style="font-size:.74rem;color:${b.correct?"var(--green)":"var(--red)"}">Answer: ${b.ans}</div></div></div>`;
-    });
-    html+=`<div style="margin-top:.9rem;color:var(--gold);font-size:.85rem;font-weight:700">+1 ticket awarded</div></div>`;
-    $("main-content").innerHTML=html;
-  } catch(e){notify("Save failed","err");}
-}
-
-// ══════════════════════════════════════════════════
-// EVENT 4 — BREATHER
-// ══════════════════════════════════════════════════
-function renderBreather(){
-  const ev=EVENTS.find(e=>e.id==="breather");
-  const t=timeUntil(ev.date);
-  if(t) return evHdr(ev)+cdHTML(ev.date,"This event begins in");
-  return evHdr(ev)+`<div class="card" style="text-align:center;padding:2.5rem 2rem">
-    <div style="font-family:'Cinzel Decorative',serif;font-size:1.4rem;background:linear-gradient(135deg,var(--gold),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1.25rem">Codes</div>
-    <p style="color:var(--text2);margin-bottom:.6rem">Some may have found some but most probably didn't.</p>
-    <p style="color:var(--text2);margin-bottom:.6rem">I've hidden them everywhere — on my nation page, in event announcements.</p>
-    <p style="color:var(--text2);margin-bottom:.6rem">But today is different.</p>
-    <p style="color:var(--gold);font-weight:600;margin-bottom:.6rem">I will send them to you — or my bot will, to be more exact.</p>
-    <p style="color:var(--text2);margin-bottom:.6rem">You have <strong style="color:var(--cyan)">5 minutes</strong> to redeem it. Miss it and someone else gets a chance.</p>
-    <hr class="divider">
-    <p style="color:var(--text3);font-size:.78rem">Redeem codes you receive via DM using the box at the top. Rewards: 1st = 10 🎫, 2nd = 7, 3rd = 5, 4th = 3</p>
-    <p style="color:var(--text3);font-size:.75rem;margin-top:.3rem;font-style:italic">This is a breather round while I prepare the final event — enjoy 🙂</p>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════
-// EVENT 5 — CASINO
-// ══════════════════════════════════════════════════
-function renderCasino(){
-  const ev=EVENTS.find(e=>e.id==="casino");
-  const t=timeUntil(ev.date);
-  if(t) return evHdr(ev)+cdHTML(ev.date,"Casino Night opens in");
-  return evHdr(ev)+`
-  <div class="card"><div class="card-title">House Rules</div>
-    <p style="color:var(--text2);font-size:.85rem">Gamble your tickets. Coin flip only works under 100 tickets. Losing costs you the bet.</p>
-  </div>
-  <div class="grid2">
-    <div class="cgame"><h3>🪙 Coin Flip</h3>
-      <p style="color:var(--text3);font-size:.72rem">Doubles bet — only under 100 tickets</p>
-      <div class="coin" id="coin">🪙</div>
-      <div class="cresult" id="cfr">—</div>
-      <input class="binput" type="number" id="cfb" value="1" min="1">
-      <button class="btn btn-gold btn-sm" onclick="playCF()">Flip</button>
-    </div>
-    <div class="cgame"><h3>🎰 Slots</h3>
-      <p style="color:var(--text3);font-size:.72rem">3 match = 3× | 💎💎💎 = 5× | 2 match = 0.5×</p>
-      <div class="reels"><div class="reel" id="sl0">🍒</div><div class="reel" id="sl1">🍋</div><div class="reel" id="sl2">🍊</div></div>
-      <div class="cresult" id="slr">—</div>
-      <input class="binput" type="number" id="slb" value="1" min="1">
-      <button class="btn btn-gold btn-sm" onclick="playSlots()">Spin</button>
-    </div>
-    <div class="cgame"><h3>🔫 Russian Roulette</h3>
-      <p style="color:var(--text3);font-size:.72rem">Solo win = +bet | Multi bet 5, win = +25</p>
-      <div class="chambers" id="chmbrs">${Array.from({length:6},(_,i)=>`<div class="chamber" id="ch${i}">🔵</div>`).join("")}</div>
-      <div class="cresult" id="rrr">—</div>
-      <div style="display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-red btn-sm" onclick="playRR(1,true)">Solo (1)</button>
-        <button class="btn btn-gold btn-sm" onclick="playRR(5,false)">Multi (5)</button>
-      </div>
-    </div>
-    <div class="cgame"><h3>🎲 High Dice</h3>
-      <p style="color:var(--text3);font-size:.72rem">Roll 5 or 6 → win 1.5× bet</p>
-      <div style="font-size:2.5rem;margin:.75rem 0" id="dice">🎲</div>
-      <div class="cresult" id="dr">—</div>
-      <input class="binput" type="number" id="db" value="1" min="1">
-      <button class="btn btn-gold btn-sm" onclick="playDice()">Roll</button>
-    </div>
-  </div>`;
-}
-
-const DE=["","⚀","⚁","⚂","⚃","⚄","⚅"];
-async function ckTickets(n){
-  await refreshTickets();
-  if((me?.tickets||0)<n){notify(`Need ${n} tickets, you have ${me.tickets}`,"err");return false;}
-  return true;
-}
-
-async function playCF(){
-  const b=parseInt($("cfb")?.value)||1;
-  if(me.tickets>=100){notify("Coin flip disabled above 100 tickets","err");return;}
-  if(!await ckTickets(b))return;
-  const w=Math.random()<.5;
-  await addTickets(me.discord_id,w?b:-b,`casino:cf:${w?"w":"l"}`);
-  const c=$("coin");c.classList.add("flip");setTimeout(()=>c.classList.remove("flip"),900);
-  $("cfr").innerHTML=w?`<span class="ok">✅ +${b} (${me.tickets})</span>`:`<span class="err">❌ -${b} (${me.tickets})</span>`;
-}
-
-async function playSlots(){
-  const b=parseInt($("slb")?.value)||1;
-  if(!await ckTickets(b))return;
-  const s=["🍒","🍋","🍊","⭐","💎","7️⃣"];
-  const r=[0,1,2].map(()=>s[Math.floor(Math.random()*s.length)]);
-  for(let i=0;i<3;i++){const e=$(`sl${i}`);if(e){e.classList.add("spin");setTimeout(()=>e.classList.remove("spin"),400+i*100);}}
-  const d=r[0]===r[1]&&r[1]===r[2]?(r[0]==="💎"?b*5:b*3):(r[0]===r[1]||r[1]===r[2]?Math.floor(b*.5):-b);
-  await addTickets(me.discord_id,d,"casino:slots");
-  setTimeout(()=>{r.forEach((v,i)=>{const e=$(`sl${i}`);if(e)e.textContent=v;});
-    $("slr").innerHTML=d>0?`<span class="ok">+${d} (${me.tickets})</span>`:`<span class="err">${d} (${me.tickets})</span>`;},600);
-}
-
-async function playRR(b,solo){
-  if(!await ckTickets(b))return;
-  const c=1+Math.floor(Math.random()*6),sv=c!==1;
-  document.querySelectorAll(".chamber").forEach((el,i)=>{el.className="chamber";el.textContent="🔵";
-    if(i===c-1){el.classList.add(sv?"safe":"danger");el.textContent=sv?"✅":"💥";}});
-  const d=solo?(sv?b:-b):(sv?25:-5);
-  await addTickets(me.discord_id,d,`casino:rr:${sv?"w":"l"}`);
-  $("rrr").innerHTML=sv?`<span class="ok">Survived! +${Math.abs(d)} (${me.tickets})</span>`:`<span class="err">💀 BANG! -${Math.abs(d)} (${me.tickets})</span>`;
-}
-
-async function playDice(){
-  const b=parseInt($("db")?.value)||1;
-  if(!await ckTickets(b))return;
-  const r=1+Math.floor(Math.random()*6),w=r>=5;
-  const d=w?Math.floor(b*1.5):-b;
-  $("dice").textContent=DE[r];
-  await addTickets(me.discord_id,d,`casino:dice:${w?"w":"l"}`);
-  $("dr").innerHTML=w?`<span class="ok">Rolled ${r}! +${Math.abs(d)} (${me.tickets})</span>`:`<span class="err">Rolled ${r}. -${Math.abs(d)} (${me.tickets})</span>`;
-}
-
-// ══════════════════════════════════════════════════
-// LEADERBOARD
-// ══════════════════════════════════════════════════
-async function renderLB(m){
-  m.innerHTML=`<div class="event-header"><div class="event-title">🏆 Leaderboard</div></div><div class="loading">Loading…</div>`;
-  const t=await ghRead("tickets.json")??{};
-  const lb=Object.entries(t).sort((a,b)=>b[1].tickets-a[1].tickets).slice(0,20);
-  let html=`<div class="event-header"><div class="event-title">🏆 Leaderboard</div></div><div class="card">`;
-  if(!lb.length){html+=`<p style="color:var(--text3);font-size:.85rem;padding:.5rem">No entries yet.</p>`;}
-  lb.forEach(([did,d],i)=>{
-    // Resolve username from keys if possible
-    const rc=i===0?"r1":i===1?"r2":i===2?"r3":"";
-    const isMe=me?.discord_id===did;
-    html+=`<div class="lb-row" style="${isMe?"background:rgba(240,192,64,.04)":""}">
-      <div class="lb-rank ${rc}">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
-      <div class="lb-name">${isMe?`<span class="gold">@${me.username}</span>`:did}${isMe?" <span class='tag tag-gold'>You</span>":""}</div>
-      <div class="lb-val">🎫 ${d.tickets}</div>
-    </div>`;
-  });
-  html+=`</div>`;
-  m.innerHTML=html;
-}
-
-// ══════════════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════════════
-document.addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&document.activeElement?.id==="key-input") doLogin();
-  if(e.key==="Enter"&&document.activeElement?.id==="code-input") handleRedeem();
-});
-
-(async()=>{
-  const ok=await restoreSession();
-  if(ok){
-    $("login-wall").classList.add("hidden");
-    renderAuth();buildTabs();showTab("home");
-  }
-})();
 </script>
 </body>
 </html>
