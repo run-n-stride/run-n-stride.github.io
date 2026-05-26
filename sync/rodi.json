@@ -9,7 +9,7 @@
   "data": {
     "runs": [
       {
-        "id": 1779823229568,
+        "id": 1779823288927,
         "userId": "rodi",
         "displayName": "Sumnor",
         "date": "2026-05-26",
@@ -23,7 +23,7 @@
           "Strava"
         ],
         "route": [],
-        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823229568.jpg",
+        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823288927.jpg",
         "verified": true,
         "isPublic": true,
         "city": "Contern",
@@ -125,5 +125,5 @@
     "profile": null,
     "warmup": null
   },
-  "syncedAt": "2026-05-26T19:20:36.001Z"
+  "syncedAt": "2026-05-26T19:21:35.552Z"
 }
