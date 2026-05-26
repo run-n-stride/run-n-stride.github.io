@@ -7,11 +7,102 @@
     "createdAt": 1779822842209
   },
   "data": {
-    "runs": null,
+    "runs": [
+      {
+        "id": 1779823200675,
+        "userId": "rodi",
+        "displayName": "Sumnor",
+        "date": "2026-05-26",
+        "name": "Evening Run",
+        "dist": 10.4,
+        "timeSec": 3682,
+        "elev": 97,
+        "pace": 354.03846153846155,
+        "notes": "This wasrought",
+        "tags": [
+          "Strava",
+          "Hard"
+        ],
+        "route": [
+          [
+            49.76834,
+            6.236423
+          ],
+          [
+            49.766334,
+            6.244881
+          ],
+          [
+            49.766862,
+            6.25186
+          ],
+          [
+            49.764155,
+            6.260268
+          ],
+          [
+            49.767129,
+            6.269804
+          ],
+          [
+            49.772128,
+            6.268215
+          ],
+          [
+            49.77232,
+            6.268964
+          ],
+          [
+            49.776137,
+            6.264998
+          ],
+          [
+            49.776832,
+            6.265708
+          ],
+          [
+            49.778817,
+            6.259154
+          ],
+          [
+            49.781012,
+            6.254151
+          ],
+          [
+            49.779502,
+            6.250387
+          ],
+          [
+            49.780017,
+            6.239426
+          ],
+          [
+            49.778621,
+            6.23915
+          ],
+          [
+            49.778651,
+            6.234374
+          ],
+          [
+            49.77646,
+            6.231412
+          ]
+        ],
+        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823200675.jpg",
+        "verified": true,
+        "isPublic": true,
+        "city": "Contern",
+        "mapCenter": [
+          49.7,
+          6.25
+        ]
+      }
+    ],
     "goals": null,
     "plans": null,
     "profile": null,
     "warmup": null
   },
-  "syncedAt": "2026-05-26T19:19:52.013Z"
+  "syncedAt": "2026-05-26T19:20:07.125Z"
 }
