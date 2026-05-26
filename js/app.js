@@ -23,6 +23,7 @@ function showPage(id) {
       document.getElementById('lb-local').classList.add('active');
     },
     settings: () => Runs.loadSettings(),
+    routes:   () => renderRoutesPage(),
   };
   handlers[id]?.();
 }
@@ -54,8 +55,18 @@ function bootApp() {
 
   showPage('dashboard');
 
-  // background sync check (silent)
-  setTimeout(() => checkBackgroundSync(), 2000);
+  // pull on every boot so data is always fresh, then set up background push
+  if (Auth.syncEnabled()) {
+    setTimeout(async () => {
+      const r = await Auth.pullSync().catch(e => ({ err: e.message }));
+      if (r.err) console.error('[sync] boot pull failed:', r.err);
+      else if (!r.empty) {
+        // re-render current page with fresh data
+        const activePage = document.querySelector('.page.active')?.id?.replace('page-', '');
+        if (activePage) showPage(activePage);
+      }
+    }, 1500);
+  }
 }
 
 // ── startup ──

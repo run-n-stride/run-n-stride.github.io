@@ -245,31 +245,45 @@ ${dataRows}
       syncedAt: new Date().toISOString(),
     };
 
-    const res = await fetch(`${SYNC_WORKER_URL}/sync`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Username': u },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return { err: err.error || `Worker error ${res.status}` };
+    try {
+      const res  = await fetch(`${SYNC_WORKER_URL}/sync`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Username': u },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      console.log('[sync] push response', res.status, text.slice(0, 200));
+      if (!res.ok) return { err: `Worker ${res.status}: ${text.slice(0,100)}` };
+      localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
+      // update last-sync label if visible
+      const el = document.getElementById('settings-last-sync');
+      if (el) el.textContent = 'Last synced: ' + new Date().toLocaleString();
+      return { ok: true };
+    } catch(e) {
+      console.error('[sync] push error', e);
+      return { err: e.message };
     }
-    localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
-    return { ok: true };
   },
 
   async pullSync() {
     if (!this.syncEnabled()) return { err: 'Sync not configured.' };
     const u = this.current.username;
-    const res = await fetch(`${SYNC_WORKER_URL}/sync`, {
-      headers: { 'X-Username': u },
-    });
-    if (!res.ok) return { err: `Worker error ${res.status}` };
-    const json = await res.json();
-    if (!json.data) return { ok: true, empty: true };
-    Object.entries(json.data).forEach(([k, v]) => { if (v !== null) DB.set(k, v); });
-    localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
-    return { ok: true };
+    try {
+      const res = await fetch(`${SYNC_WORKER_URL}/sync`, {
+        headers: { 'X-Username': u },
+      });
+      const text = await res.text();
+      console.log('[sync] pull response', res.status, text.slice(0, 200));
+      if (!res.ok) return { err: `Worker ${res.status}: ${text.slice(0,100)}` };
+      const json = JSON.parse(text);
+      if (!json.data) return { ok: true, empty: true };
+      Object.entries(json.data).forEach(([k, v]) => { if (v !== null) DB.set(k, v); });
+      localStorage.setItem(`rt_${u}_last_sync`, new Date().toISOString());
+      return { ok: true };
+    } catch(e) {
+      console.error('[sync] pull error', e);
+      return { err: e.message };
+    }
   },
 
     // ── device fingerprint (stable per browser) ──
@@ -422,6 +436,7 @@ function scheduleSyncPush() {
   if (!Auth.syncEnabled()) return;
   clearTimeout(_syncPushTimer);
   _syncPushTimer = setTimeout(async () => {
-    try { await Auth.pushSync(); } catch {}
+    const r = await Auth.pushSync().catch(e => ({ err: e.message }));
+    if (r.err) console.error('[sync] scheduleSyncPush failed:', r.err);
   }, 5000);
 }
