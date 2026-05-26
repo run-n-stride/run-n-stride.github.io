@@ -1,22 +1,5 @@
 [
   {
-    "id": 1779823288927,
-    "userId": "rodi",
-    "displayName": "Sumnor",
-    "date": "2026-05-26",
-    "name": "Midday Walk",
-    "dist": 2.73,
-    "timeSec": 2145,
-    "pace": 785.7142857142857,
-    "elev": 26,
-    "tags": [
-      "Strava"
-    ],
-    "verified": true,
-    "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823288927.jpg",
-    "isPublic": true
-  },
-  {
     "id": 1779823200675,
     "userId": "rodi",
     "displayName": "Sumnor",
