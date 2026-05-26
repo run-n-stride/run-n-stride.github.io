@@ -23,9 +23,9 @@
           "Strava"
         ],
         "route": [],
-        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823288927.jpg",
+        "stravaImg": null,
         "verified": true,
-        "isPublic": true,
+        "isPublic": false,
         "city": "Contern",
         "mapCenter": null
       },
@@ -110,9 +110,9 @@
             6.231412
           ]
         ],
-        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823200675.jpg",
+        "stravaImg": null,
         "verified": true,
-        "isPublic": true,
+        "isPublic": false,
         "city": "Contern",
         "mapCenter": [
           49.7,
@@ -125,5 +125,5 @@
     "profile": null,
     "warmup": null
   },
-  "syncedAt": "2026-05-26T19:21:35.552Z"
+  "syncedAt": "2026-05-26T19:21:49.161Z"
 }
