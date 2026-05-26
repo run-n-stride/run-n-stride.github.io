@@ -9,6 +9,27 @@
   "data": {
     "runs": [
       {
+        "id": 1779823229568,
+        "userId": "rodi",
+        "displayName": "Sumnor",
+        "date": "2026-05-26",
+        "name": "Midday Walk",
+        "dist": 2.73,
+        "timeSec": 2145,
+        "elev": 26,
+        "pace": 785.7142857142857,
+        "notes": "Imported from Strava screenshot",
+        "tags": [
+          "Strava"
+        ],
+        "route": [],
+        "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823229568.jpg",
+        "verified": true,
+        "isPublic": true,
+        "city": "Contern",
+        "mapCenter": null
+      },
+      {
         "id": 1779823200675,
         "userId": "rodi",
         "displayName": "Sumnor",
@@ -104,5 +125,5 @@
     "profile": null,
     "warmup": null
   },
-  "syncedAt": "2026-05-26T19:20:07.125Z"
+  "syncedAt": "2026-05-26T19:20:36.001Z"
 }
