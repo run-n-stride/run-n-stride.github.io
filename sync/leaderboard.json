@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1779823200675,
+    "userId": "rodi",
+    "displayName": "Sumnor",
+    "date": "2026-05-26",
+    "name": "Evening Run",
+    "dist": 10.4,
+    "timeSec": 3682,
+    "pace": 354.03846153846155,
+    "elev": 97,
+    "tags": [
+      "Strava",
+      "Hard"
+    ],
+    "verified": true,
+    "stravaImg": "https://raw.githubusercontent.com/run-n-stride/run-n-stride.github.io/sync/sync/images/rodi_1779823200675.jpg",
+    "isPublic": true
+  }
+]
